@@ -12,7 +12,7 @@ setup(
     url='https://github.com/Bartosz-G/NeuralNetworksTrainingPackage.git',
     author='BartoszGawin',
     author_email='gawinbartosz@icloud.com',
-    packages=find_packages(where='NNTraining'),
+    packages=['NNTraining'],
     package_dir={'': 'NNTraining'},
     zip_safe=False,
     install_requires=['numpy', 'pandas', 'scikit-learn', 'torch'])
