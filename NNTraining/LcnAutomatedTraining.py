@@ -56,13 +56,9 @@ class CustomDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         absolute_index = self.__relative_indices[idx]
 
-        # print(f'Debuging self.data types: {type(self.__X)}, {type(self.__Y)}')
-        x, y = self.__X.iloc[absolute_index,:], self.__Y.iloc[absolute_index,:]
+        x, y = self.__X.iloc[[absolute_index], :], self.__Y.iloc[[absolute_index], :]
 
-        # print(f'Debuging x,y types: {type(x)}, {type(y)}')
         x, y = torch.tensor(x.values, dtype=self.__tensor_type), torch.tensor(y.values, dtype=self.__tensor_type)
-
-        x, y = x.unsqueeze(0), y.unsqueeze(0)
 
         return x, y
 
@@ -95,7 +91,7 @@ class CustomDatasetWrapper(torch.utils.data.Dataset):
 
 
 
-def get_train_test(X, y, categorical_indicator, attribute_names, train_split, seed):
+def get_train_test(X, y, categorical_indicator, attribute_names, train_split, seed, outcome_encode = False):
     """Processes dataset
     expects the results from `opml_load_task`, 0<= train_spli <= 1, seed
     returns train CustomDataset Object, test CustomDataset Object, input_dim, output_dim
@@ -106,6 +102,10 @@ def get_train_test(X, y, categorical_indicator, attribute_names, train_split, se
 
     # One hot encoding all categorical variables
     X = pd.get_dummies(X, X.columns[categorical_indicator])
+
+    if outcome_encode:
+        y = pd.get_dummies(y)
+
 
     # Defining if target is categorical
     is_categorical = y.dtype.name == 'category'
@@ -177,6 +177,11 @@ if __name__ == "__main__":
     indices = np.array([2, 3, 4])
 
     test_obj = CustomDataset(test_x, test_y, indices)
+    print(test_obj[0][1])
+    print(test_obj[0][1].size())
+    print(torch.tensor([[3]], dtype=torch.float).size())
+
+
 
     assert torch.equal(test_obj[0][0], torch.tensor([[3, 6]], dtype=torch.float)) and torch.equal(test_obj[0][1],
                                                                                                   torch.tensor([[3]],
