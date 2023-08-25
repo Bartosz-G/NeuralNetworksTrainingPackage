@@ -48,8 +48,10 @@ class CustomDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         absolute_index = self.__relative_indices[idx]
 
-        x, y = self.__X.iloc[absolute_index], self.__Y.iloc[absolute_index]
+        # print(f'Debuging self.data types: {type(self.__X)}, {type(self.__Y)}')
+        x, y = self.__X.iloc[absolute_index,:], self.__Y.iloc[absolute_index,:]
 
+        # print(f'Debuging x,y types: {type(x)}, {type(y)}')
         x, y = torch.tensor(x.values, dtype=self.__tensor_type), torch.tensor(y.values, dtype=self.__tensor_type)
 
         x, y = x.unsqueeze(0), y.unsqueeze(0)
@@ -309,9 +311,7 @@ if __name__ == "__main__":
         print(f'val_dataloader.dataset = {len(val_dataloader.dataset)}')
         assert len(val_dataloader.dataset) == 5, f"Validation data length in fold {i + 1} is incorrect"
 
-        # You can further test individual batches or the content of the data,
-        # such as checking if the data has been shuffled correctly,
-        # or checking the values of specific examples within the batch.
+        print(f'Data: {next(iter(train_dataloader))}')
 
     # Check that the iteration has indeed ended
     try:
