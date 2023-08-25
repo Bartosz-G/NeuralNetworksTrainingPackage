@@ -1,1 +1,1 @@
-
+from LcnAutomatedTraining import *
