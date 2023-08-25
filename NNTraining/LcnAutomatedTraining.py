@@ -34,6 +34,14 @@ class Hyperparams:
 
 class CustomDataset(torch.utils.data.Dataset):
     def __init__(self, X, Y, relative_indices, tensor_type=torch.float):
+        assert isinstance(X, (pd.Series, pd.DataFrame)), "X must be a Pandas Series or DataFrame"
+        assert isinstance(Y, (pd.Series, pd.DataFrame)), "Y must be a Pandas Series or DataFrame"
+
+        if not isinstance(X, pd.DataFrame):
+            X = X.to_frame()
+        if not isinstance(Y, pd.DataFrame):
+            Y = Y.to_frame()
+
         self.__X, self.__Y = X, Y
 
         assert isinstance(relative_indices, np.ndarray) and relative_indices.ndim == 1, "Relative indices must be a 1D NumPy array"
