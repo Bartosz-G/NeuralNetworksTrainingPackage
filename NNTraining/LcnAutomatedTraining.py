@@ -56,10 +56,10 @@ class CustomDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         absolute_index = self.relative_indices[idx]
 
-        #TODO: Handle possible mixing of datatypes  https://saturncloud.io/blog/understanding-and-resolving-the-numpy-error-cant-convert-npndarray-of-type-numpyobject/#:~:text=The%20error%20message%20“can%27t,the%20one%20you%27re%20using.
+
         x, y = self.X.iloc[[absolute_index], :], self.Y.iloc[[absolute_index], :]
 
-        x, y = torch.tensor(x.values, dtype=self.tensor_type), torch.tensor(y.values, dtype=self.tensor_type)
+        x, y = torch.tensor(x.values.squeeze(axis=0), dtype=self.tensor_type), torch.tensor(y.values.squeeze(axis=0), dtype=self.tensor_type)
 
         return x, y
 
@@ -178,26 +178,27 @@ if __name__ == "__main__":
     indices = np.array([2, 3, 4])
 
     test_obj = CustomDataset(test_x, test_y, indices)
+    print(test_obj[0])
     print(test_obj[0][1])
-    print(test_obj[0][1].size())
-    print(torch.tensor([[3]], dtype=torch.float).size())
+    print(test_obj[0][1].shape)
+    print(torch.tensor([3], dtype=torch.float).shape)
 
 
 
-    assert torch.equal(test_obj[0][0], torch.tensor([[3, 6]], dtype=torch.float)) and torch.equal(test_obj[0][1],
-                                                                                                  torch.tensor([[3]],
+    assert torch.equal(test_obj[0][0], torch.tensor([3, 6], dtype=torch.float)) and torch.equal(test_obj[0][1],
+                                                                                                  torch.tensor([3],
                                                                                                                dtype=torch.float)), 'test failed'
     print('test passed')
-    assert torch.equal(test_obj[1][0], torch.tensor([[4, 8]], dtype=torch.float)) and torch.equal(test_obj[1][1],
-                                                                                                  torch.tensor([[4]],
+    assert torch.equal(test_obj[1][0], torch.tensor([4, 8], dtype=torch.float)) and torch.equal(test_obj[1][1],
+                                                                                                  torch.tensor([4],
                                                                                                                dtype=torch.float)), 'test failed'
     print('test passed')
-    assert torch.equal(test_obj[2][0], torch.tensor([[5, 1]], dtype=torch.float)) and torch.equal(test_obj[2][1],
-                                                                                                  torch.tensor([[5]],
+    assert torch.equal(test_obj[2][0], torch.tensor([5, 1], dtype=torch.float)) and torch.equal(test_obj[2][1],
+                                                                                                  torch.tensor([5],
                                                                                                                dtype=torch.float)), 'test failed'
     print('test passed')
-    assert torch.equal(test_obj[2][0], torch.tensor([[5, 1]], dtype=torch.float)) and torch.equal(test_obj[2][1],
-                                                                                                  torch.tensor([[5]],
+    assert torch.equal(test_obj[2][0], torch.tensor([5, 1], dtype=torch.float)) and torch.equal(test_obj[2][1],
+                                                                                                  torch.tensor([5],
                                                                                                                dtype=torch.float)), 'test failed'
     print('test passed')
     assert len(test_obj) == len(indices), 'test failed'
@@ -208,12 +209,12 @@ if __name__ == "__main__":
     concatenated_Y = torch.cat([test_obj[i][1] for i in range(len(test_obj))], dim=0)
 
     # Expected concatenated tensors
-    expected_X = torch.cat([torch.tensor([[3, 6]], dtype=torch.float),
-                            torch.tensor([[4, 8]], dtype=torch.float),
-                            torch.tensor([[5, 1]], dtype=torch.float)], dim=0)
-    expected_Y = torch.cat([torch.tensor([[3]], dtype=torch.float),
-                            torch.tensor([[4]], dtype=torch.float),
-                            torch.tensor([[5]], dtype=torch.float)], dim=0)
+    expected_X = torch.cat([torch.tensor([3, 6], dtype=torch.float),
+                            torch.tensor([4, 8], dtype=torch.float),
+                            torch.tensor([5, 1], dtype=torch.float)], dim=0)
+    expected_Y = torch.cat([torch.tensor([3], dtype=torch.float),
+                            torch.tensor([4], dtype=torch.float),
+                            torch.tensor([5], dtype=torch.float)], dim=0)
 
     # Check if the concatenated tensors are equal to the expected tensors
     assert torch.equal(concatenated_X, expected_X), 'Concatenated X test failed'
@@ -238,13 +239,13 @@ if __name__ == "__main__":
     test_outer_obj = CustomDatasetWrapper(test_obj, indices_2)
 
     # Testing index [0]
-    assert torch.equal(test_outer_obj[0][0], torch.tensor([[4, 8]], dtype=torch.float)) and torch.equal(
-        test_outer_obj[0][1], torch.tensor([[4]], dtype=torch.float)), 'test failed'
+    assert torch.equal(test_outer_obj[0][0], torch.tensor([4, 8], dtype=torch.float)) and torch.equal(
+        test_outer_obj[0][1], torch.tensor([4], dtype=torch.float)), 'test failed'
     print('test passed')
 
     # Testing index [1]
-    assert torch.equal(test_outer_obj[1][0], torch.tensor([[5, 1]], dtype=torch.float)) and torch.equal(
-        test_outer_obj[1][1], torch.tensor([[5]], dtype=torch.float)), 'test failed'
+    assert torch.equal(test_outer_obj[1][0], torch.tensor([5, 1], dtype=torch.float)) and torch.equal(
+        test_outer_obj[1][1], torch.tensor([5], dtype=torch.float)), 'test failed'
     print('test passed')
 
     # Concatenating the inputs (assuming they are 2D tensors)
@@ -252,10 +253,10 @@ if __name__ == "__main__":
     concatenated_Y = torch.cat([test_outer_obj[i][1] for i in range(len(test_outer_obj))], dim=0)
 
     # Expected concatenated tensors
-    expected_X = torch.cat([torch.tensor([[4, 8]], dtype=torch.float),
-                            torch.tensor([[5, 1]], dtype=torch.float)], dim=0)
-    expected_Y = torch.cat([torch.tensor([[4]], dtype=torch.float),
-                            torch.tensor([[5]], dtype=torch.float)], dim=0)
+    expected_X = torch.cat([torch.tensor([4, 8], dtype=torch.float),
+                            torch.tensor([5, 1], dtype=torch.float)], dim=0)
+    expected_Y = torch.cat([torch.tensor([4], dtype=torch.float),
+                            torch.tensor([5], dtype=torch.float)], dim=0)
 
     # Check if the concatenated tensors are equal to the expected tensors
     assert torch.equal(concatenated_X, expected_X), 'Concatenated X test failed'
@@ -270,13 +271,13 @@ if __name__ == "__main__":
     test_outer_obj.set_new_indices(new_indices)
 
     # Testing index [0] with new relative indices
-    assert torch.equal(test_outer_obj[0][0], torch.tensor([[3, 6]], dtype=torch.float)) and torch.equal(
-        test_outer_obj[0][1], torch.tensor([[3]], dtype=torch.float)), 'test failed'
+    assert torch.equal(test_outer_obj[0][0], torch.tensor([3, 6], dtype=torch.float)) and torch.equal(
+        test_outer_obj[0][1], torch.tensor([3], dtype=torch.float)), 'test failed'
     print('test passed')
 
     # Testing index [1] with new relative indices
-    assert torch.equal(test_outer_obj[1][0], torch.tensor([[5, 1]], dtype=torch.float)) and torch.equal(
-        test_outer_obj[1][1], torch.tensor([[5]], dtype=torch.float)), 'test failed'
+    assert torch.equal(test_outer_obj[1][0], torch.tensor([5, 1], dtype=torch.float)) and torch.equal(
+        test_outer_obj[1][1], torch.tensor([5], dtype=torch.float)), 'test failed'
     print('test passed')
 
     # Concatenating the inputs (assuming they are 2D tensors) with new relative indices
@@ -284,10 +285,10 @@ if __name__ == "__main__":
     concatenated_Y = torch.cat([test_outer_obj[i][1] for i in range(len(test_outer_obj))], dim=0)
 
     # Expected concatenated tensors with new relative indices
-    expected_X = torch.cat([torch.tensor([[3, 6]], dtype=torch.float),
-                            torch.tensor([[5, 1]], dtype=torch.float)], dim=0)
-    expected_Y = torch.cat([torch.tensor([[3]], dtype=torch.float),
-                            torch.tensor([[5]], dtype=torch.float)], dim=0)
+    expected_X = torch.cat([torch.tensor([3, 6], dtype=torch.float),
+                            torch.tensor([5, 1], dtype=torch.float)], dim=0)
+    expected_Y = torch.cat([torch.tensor([3], dtype=torch.float),
+                            torch.tensor([5], dtype=torch.float)], dim=0)
 
     # Check if the concatenated tensors are equal to the expected tensors
     assert torch.equal(concatenated_X, expected_X), 'Concatenated X test failed'
