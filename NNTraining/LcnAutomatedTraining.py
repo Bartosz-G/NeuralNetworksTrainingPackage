@@ -56,6 +56,7 @@ class CustomDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         absolute_index = self.relative_indices[idx]
 
+        #TODO: Handle possible mixing of datatypes  https://saturncloud.io/blog/understanding-and-resolving-the-numpy-error-cant-convert-npndarray-of-type-numpyobject/#:~:text=The%20error%20message%20“can%27t,the%20one%20you%27re%20using.
         x, y = self.X.iloc[[absolute_index], :], self.Y.iloc[[absolute_index], :]
 
         x, y = torch.tensor(x.values, dtype=self.tensor_type), torch.tensor(y.values, dtype=self.tensor_type)
@@ -91,7 +92,7 @@ class CustomDatasetWrapper(torch.utils.data.Dataset):
 
 
 
-def get_train_test(X, y, categorical_indicator, attribute_names, train_split, seed, outcome_encode = False):
+def get_train_test(X, y, categorical_indicator, attribute_names, train_split, seed):
     """Processes dataset
     expects the results from `opml_load_task`, 0<= train_spli <= 1, seed
     returns train CustomDataset Object, test CustomDataset Object, input_dim, output_dim
@@ -103,12 +104,12 @@ def get_train_test(X, y, categorical_indicator, attribute_names, train_split, se
     # One hot encoding all categorical variables
     X = pd.get_dummies(X, X.columns[categorical_indicator])
 
-    if outcome_encode:
-        y = pd.get_dummies(y)
-
 
     # Defining if target is categorical
     is_categorical = y.dtype.name == 'category'
+
+    if is_categorical:
+        y = pd.get_dummies(y)
 
     # Set the random seed for reproducibility
     np.random.seed(seed)
