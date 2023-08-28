@@ -42,23 +42,23 @@ class CustomDataset(torch.utils.data.Dataset):
         if not isinstance(Y, pd.DataFrame):
             Y = Y.to_frame()
 
-        self.__X, self.__Y = X, Y
+        self.X, self.Y = X, Y
 
         assert isinstance(relative_indices, np.ndarray) and relative_indices.ndim == 1, "Relative indices must be a 1D NumPy array"
-        self.__relative_indices = np.sort(relative_indices)
+        self.relative_indices = np.sort(relative_indices)
 
         assert isinstance(tensor_type, torch.dtype), "tensor_type must be a valid torch.dtype"
-        self.__tensor_type = tensor_type
+        self.tensor_type = tensor_type
 
     def __len__(self):
-        return len(self.__relative_indices)
+        return len(self.relative_indices)
 
     def __getitem__(self, idx):
-        absolute_index = self.__relative_indices[idx]
+        absolute_index = self.relative_indices[idx]
 
-        x, y = self.__X.iloc[[absolute_index], :], self.__Y.iloc[[absolute_index], :]
+        x, y = self.X.iloc[[absolute_index], :], self.Y.iloc[[absolute_index], :]
 
-        x, y = torch.tensor(x.values, dtype=self.__tensor_type), torch.tensor(y.values, dtype=self.__tensor_type)
+        x, y = torch.tensor(x.values, dtype=self.tensor_type), torch.tensor(y.values, dtype=self.tensor_type)
 
         return x, y
 
