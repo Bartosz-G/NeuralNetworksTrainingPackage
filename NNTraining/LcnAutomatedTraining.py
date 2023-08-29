@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import torch
 from sklearn.model_selection import KFold
+from sklearn.utils import shuffle
 
 
 
@@ -98,26 +99,27 @@ def get_train_test(X, y, categorical_indicator, attribute_names, train_split, se
     returns train CustomDataset Object, test CustomDataset Object, input_dim, output_dim
     """
 
-    # Assert that train_split is between 0 and 1
     assert 0 <= train_split <= 1, "train_split must be between 0 and 1."
 
-    # One hot encoding all categorical variables
+    np.random.seed(seed)
+    X, y = shuffle(X, y, random_state=seed)
+    X, y = X.head(10000), y.head(10000)
+
+
+    # Fixed to one-hot encoding for all categorical variables
     X = pd.get_dummies(X, X.columns[categorical_indicator])
 
-
-    # Defining if target is categorical
     is_categorical = y.dtype.name == 'category'
 
     if is_categorical:
         y = pd.get_dummies(y)
 
-    # Set the random seed for reproducibility
-    np.random.seed(seed)
+
 
     # Calculate the number of training samples
+
     num_train_samples = int(len(X) * train_split)
 
-    # Sample indices for the training and test data
     train_indices = np.random.choice(X.index, num_train_samples, replace=False)
     test_indices = np.setdiff1d(X.index, train_indices)
 
