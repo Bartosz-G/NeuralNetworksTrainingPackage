@@ -35,13 +35,8 @@ class Hyperparams:
 
 class CustomDataset(torch.utils.data.Dataset):
     def __init__(self, X, Y, relative_indices, tensor_type=torch.float):
-        assert isinstance(X, (pd.Series, pd.DataFrame)), "X must be a Pandas Series or DataFrame"
-        assert isinstance(Y, (pd.Series, pd.DataFrame)), "Y must be a Pandas Series or DataFrame"
-
-        if not isinstance(X, pd.DataFrame):
-            X = X.to_frame()
-        if not isinstance(Y, pd.DataFrame):
-            Y = Y.to_frame()
+        assert isinstance(X, pd.DataFrame), "X must be a Pandas DataFrame"
+        assert isinstance(Y, pd.DataFrame), "Y must be a Pandas DataFrame"
 
         self.X, self.Y = X, Y
 
@@ -93,32 +88,41 @@ class CustomDatasetWrapper(torch.utils.data.Dataset):
 
 
 
-def get_train_test(X, y, categorical_indicator, attribute_names, train_split, seed):
+def get_train_test(X, y, categorical_indicator, attribute_names, train_split, trunctuate = 20000, seed = None):
     """Processes dataset
     expects the results from `opml_load_task`, 0<= train_spli <= 1, seed
     returns train CustomDataset Object, test CustomDataset Object, input_dim, output_dim
     """
 
     assert 0 <= train_split <= 1, "train_split must be between 0 and 1."
+    assert isinstance(X, (pd.Series, pd.DataFrame)), "X must be a Pandas Series or DataFrame"
+    assert isinstance(y, (pd.Series, pd.DataFrame)), "Y must be a Pandas Series or DataFrame"
 
-    np.random.seed(seed)
-    X, y = shuffle(X, y, random_state=seed)
-    X, y = X.head(10000), y.head(10000)
+    if not isinstance(X, pd.DataFrame):
+        X = X.to_frame()
+    if not isinstance(y, pd.DataFrame):
+        y = y.to_frame()
+
+    if seed:
+        np.random.seed(seed)
 
 
+    if trunctuate:
+        X, y = shuffle(X, y, random_state=seed)
+        X, y = X.head(trunctuate), y.head(trunctuate)
+
+
+    # TODO: Implement different types of smoothing
+    # TODO: Implement other types of encoding options
     # Fixed to one-hot encoding for all categorical variables
     X = pd.get_dummies(X, X.columns[categorical_indicator])
 
     is_categorical = y.dtype.name == 'category'
-
     if is_categorical:
         y = pd.get_dummies(y)
 
-
-
-    # Calculate the number of training samples
-
-    num_train_samples = int(len(X) * train_split)
+    data_nrows = len(X)
+    num_train_samples = int(data_nrows * train_split)
 
     train_indices = np.random.choice(X.index, num_train_samples, replace=False)
     test_indices = np.setdiff1d(X.index, train_indices)
@@ -127,6 +131,42 @@ def get_train_test(X, y, categorical_indicator, attribute_names, train_split, se
     num_columns_y = y.shape[1] if isinstance(y, pd.DataFrame) else 1
 
     return CustomDataset(X, y, train_indices), CustomDataset(X, y, test_indices), num_columns_X, num_columns_y
+
+
+def get_train_val_test(X, y, categorical_indicator, attribute_names,
+                       split = [0.5, 0.25, 0.25],
+                       trunctuate = 20000,
+                       seed = None):
+
+    assert isinstance(split, list) and len(split) == 3 and all(isinstance(x, float) for x in split), "split must be a list of floats, for train, val, test e.g. [0.5, 0.25, 0.25]"
+    assert isinstance(trunctuate, int) or trunctuate is None or trunctuate is False, "trunctuate must be a whole number or either a False or None"
+    assert isinstance(X, (pd.Series, pd.DataFrame)), "X must be a Pandas Series or DataFrame"
+    assert isinstance(y, (pd.Series, pd.DataFrame)), "Y must be a Pandas Series or DataFrame"
+
+    if not isinstance(X, pd.DataFrame):
+        X = X.to_frame()
+    if not isinstance(y, pd.DataFrame):
+        y = y.to_frame()
+
+    if seed:
+        np.random.seed(seed)
+
+    if trunctuate:
+        X, y = shuffle(X, y, random_state=seed)
+        X, y = X.head(trunctuate), y.head(trunctuate)
+
+
+    # TODO: Implement different types of smoothing
+    # TODO: Implement other types of encoding options
+    # Fixed to one-hot encoding for all categorical variables
+    X = pd.get_dummies(X, X.columns[categorical_indicator])
+
+    is_categorical = y.dtype.name == 'category'
+    if is_categorical:
+        y = pd.get_dummies(y)
+
+
+
 
 
 class kfold_dataloader_iterator():
