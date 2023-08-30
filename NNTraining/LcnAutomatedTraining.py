@@ -193,6 +193,8 @@ def get_train_val_test(X, y, categorical_indicator, attribute_names,
         num_columns_y = y.shape[1] if isinstance(y, pd.DataFrame) else 1
         args.set_input_dims(num_columns_X, num_columns_y)
 
+    return CustomDataset(X, y, train_indices), CustomDataset(X, y, val_indices), CustomDataset(X, y, test_indices)
+
 
 
 
