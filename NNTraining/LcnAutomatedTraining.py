@@ -30,6 +30,15 @@ class Hyperparams:
         self.lr_step_size = lr_step_size
         self.gamma = gamma
         self.task = task
+        self.input_dim = None
+        self.output_dim = None
+
+    def __bool__(self):
+        return True
+
+    def set_input_dims(self, input_dim, output_dim):
+        self.input_dim = input_dim
+        self.output_dim = output_dim
 
 
 
@@ -88,7 +97,8 @@ class CustomDatasetWrapper(torch.utils.data.Dataset):
 
 
 
-def get_train_test(X, y, categorical_indicator, attribute_names, train_split, trunctuate = 20000, seed = None):
+def get_train_test(X, y, categorical_indicator, attribute_names, train_split = 0.8,
+                   trunctuate = 20000, seed = None, args = None):
     """Processes dataset
     expects the results from `opml_load_task`, 0<= train_spli <= 1, seed
     returns train CustomDataset Object, test CustomDataset Object, input_dim, output_dim
@@ -127,16 +137,20 @@ def get_train_test(X, y, categorical_indicator, attribute_names, train_split, tr
     train_indices = np.random.choice(X.index, num_train_samples, replace=False)
     test_indices = np.setdiff1d(X.index, train_indices)
 
-    num_columns_X = X.shape[1]
-    num_columns_y = y.shape[1] if isinstance(y, pd.DataFrame) else 1
+    # Only for LCN
+    if args:
+        num_columns_X = X.shape[1]
+        num_columns_y = y.shape[1] if isinstance(y, pd.DataFrame) else 1
+        args.set_input_dims(num_columns_X, num_columns_y)
 
-    return CustomDataset(X, y, train_indices), CustomDataset(X, y, test_indices), num_columns_X, num_columns_y
+    return CustomDataset(X, y, train_indices), CustomDataset(X, y, test_indices)
 
 
 def get_train_val_test(X, y, categorical_indicator, attribute_names,
                        split = [0.5, 0.25, 0.25],
                        trunctuate = 20000,
-                       seed = None):
+                       seed = None,
+                       args = None):
 
     assert isinstance(split, list) and len(split) == 3 and all(isinstance(x, float) for x in split), "split must be a list of floats, for train, val, test e.g. [0.5, 0.25, 0.25]"
     assert isinstance(trunctuate, int) or trunctuate is None or trunctuate is False, "trunctuate must be a whole number or either a False or None"
@@ -165,6 +179,19 @@ def get_train_val_test(X, y, categorical_indicator, attribute_names,
     if is_categorical:
         y = pd.get_dummies(y)
 
+    data_nrow = len(X)
+    train_count, val_count = int(data_nrow * split[0]), int(data_nrow * split[1])
+    test_count = data_nrow - train_count - val_count
+
+    shuffled_indices = np.random.permutation(data_nrow)
+
+    train_indices, val_indices, test_indices = shuffled_indices[:train_count], shuffled_indices[train_count:train_count + val_count], shuffled_indices[train_count + val_count:]
+
+    # Only for LCN
+    if args:
+        num_columns_X = X.shape[1]
+        num_columns_y = y.shape[1] if isinstance(y, pd.DataFrame) else 1
+        args.set_input_dims(num_columns_X, num_columns_y)
 
 
 
