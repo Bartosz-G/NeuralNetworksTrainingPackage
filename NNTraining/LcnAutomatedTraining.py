@@ -184,10 +184,9 @@ def get_train_val_test(X, y, categorical_indicator, attribute_names,
     # Fixed to one-hot encoding for all categorical variables
     X = pd.get_dummies(X, X.columns[categorical_indicator])
 
-    is_categorical = y.dtype.name == 'category'
+    is_categorical = any(y[col].dtype.name == 'category' for col in y.columns)
     if is_categorical:
         y = pd.get_dummies(y)
-
     # ==============================================================
     # ===TODO: Refactor as a seperate, preprocessing function
     # ==============================================================
