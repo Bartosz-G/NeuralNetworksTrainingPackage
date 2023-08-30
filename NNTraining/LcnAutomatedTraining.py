@@ -254,11 +254,15 @@ def calc_metrics(y, yhat, is_categorical):
         y = pd.DataFrame(y)
     elif isinstance(y, torch.Tensor):
         y = pd.DataFrame(y.cpu().numpy())
+    elif not isinstance(y, pd.DataFrame):
+        raise AssertionError("Allowed data types of y and yhat are: np.ndarray, torch.Tensor, pd.DataFrame")
 
     if isinstance(yhat, np.ndarray):
         yhat = pd.DataFrame(yhat)
     elif isinstance(yhat, torch.Tensor):
         yhat = pd.DataFrame(yhat.cpu().numpy())
+    elif not isinstance(yhat, pd.DataFrame):
+        raise AssertionError("Allowed data types of y and yhat are: np.ndarray, torch.Tensor, pd.DataFrame")
 
     metrics = {}
     if is_categorical:
