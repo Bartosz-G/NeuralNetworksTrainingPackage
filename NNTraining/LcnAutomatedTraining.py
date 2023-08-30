@@ -3,6 +3,7 @@ import pandas as pd
 import torch
 from sklearn.model_selection import KFold
 from sklearn.utils import shuffle
+from sklearn.metrics import accuracy_score, roc_auc_score, confusion_matrix, r2_score, mean_squared_error
 
 
 
@@ -105,6 +106,10 @@ def get_train_test(X, y, categorical_indicator, attribute_names, train_split = 0
     """
 
     assert 0 <= train_split <= 1, "train_split must be between 0 and 1."
+
+    # ==============================================================
+    # ===TODO: Refactor as a seperate, preprocessing function
+    # ==============================================================
     assert isinstance(X, (pd.Series, pd.DataFrame)), "X must be a Pandas Series or DataFrame"
     assert isinstance(y, (pd.Series, pd.DataFrame)), "Y must be a Pandas Series or DataFrame"
 
@@ -122,14 +127,15 @@ def get_train_test(X, y, categorical_indicator, attribute_names, train_split = 0
         X, y = X.head(trunctuate), y.head(trunctuate)
 
 
-    # TODO: Implement different types of smoothing
-    # TODO: Implement other types of encoding options
     # Fixed to one-hot encoding for all categorical variables
     X = pd.get_dummies(X, X.columns[categorical_indicator])
 
     is_categorical = y.dtype.name == 'category'
     if is_categorical:
         y = pd.get_dummies(y)
+    # ==============================================================
+    # ===TODO: Refactor as a seperate, preprocessing function
+    # ==============================================================
 
     data_nrows = len(X)
     num_train_samples = int(data_nrows * train_split)
@@ -154,6 +160,10 @@ def get_train_val_test(X, y, categorical_indicator, attribute_names,
 
     assert isinstance(split, list) and len(split) == 3 and all(isinstance(x, float) for x in split), "split must be a list of floats, for train, val, test e.g. [0.5, 0.25, 0.25]"
     assert isinstance(trunctuate, int) or trunctuate is None or trunctuate is False, "trunctuate must be a whole number or either a False or None"
+
+    # ==============================================================
+    # ===TODO: Refactor as a seperate, preprocessing function
+    # ==============================================================
     assert isinstance(X, (pd.Series, pd.DataFrame)), "X must be a Pandas Series or DataFrame"
     assert isinstance(y, (pd.Series, pd.DataFrame)), "Y must be a Pandas Series or DataFrame"
 
@@ -170,14 +180,18 @@ def get_train_val_test(X, y, categorical_indicator, attribute_names,
         X, y = X.head(trunctuate), y.head(trunctuate)
 
 
-    # TODO: Implement different types of smoothing
-    # TODO: Implement other types of encoding options
+
     # Fixed to one-hot encoding for all categorical variables
     X = pd.get_dummies(X, X.columns[categorical_indicator])
 
     is_categorical = y.dtype.name == 'category'
     if is_categorical:
         y = pd.get_dummies(y)
+
+    # ==============================================================
+    # ===TODO: Refactor as a seperate, preprocessing function
+    # ==============================================================
+
 
     data_nrow = len(X)
     train_count, val_count = int(data_nrow * split[0]), int(data_nrow * split[1])
@@ -232,6 +246,31 @@ class kfold_dataloader_iterator():
         val_dataloader = torch.utils.data.DataLoader(self.val_data, batch_size=len(self.val_data), shuffle=False)
 
         return train_dataloader, val_dataloader
+
+
+def calc_metrics(y, yhat, is_categorical):
+    # Check if inputs are NumPy arrays or torch tensors, and convert to DataFrame
+    if isinstance(y, np.ndarray):
+        y = pd.DataFrame(y)
+    elif isinstance(y, torch.Tensor):
+        y = pd.DataFrame(y.cpu().numpy())
+
+    if isinstance(yhat, np.ndarray):
+        yhat = pd.DataFrame(yhat)
+    elif isinstance(yhat, torch.Tensor):
+        yhat = pd.DataFrame(yhat.cpu().numpy())
+
+    metrics = {}
+    if is_categorical:
+        metrics['accuracy_score'] = accuracy_score(y, yhat)
+        metrics['roc_auc_score'] = roc_auc_score(y, yhat, multi_class='ovo', average='macro')
+        metrics['confusion_matrix'] = [ list(r) for r in confusion_matrix(y, yhat)]
+    else:
+        metrics['r2_score'] = r2_score(y, yhat)
+        metrics['RMSE'] = mean_squared_error(y, yhat, squared=False)
+        metrics['se_quant'] = ((yhat - y)**2).quantile([0.01, 0.025, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.975, 0.99]).to_dict()
+
+    return metrics
 
 
 if __name__ == "__main__":
