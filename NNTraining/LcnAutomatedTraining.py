@@ -377,7 +377,8 @@ def calc_metrics(y, yhat, is_categorical):
 
         metrics['accuracy_score'] = float(accuracy_score(y_class, yhat_class))
         metrics['roc_auc_score'] = float(roc_auc_score(y_score, yhat_score, multi_class='ovo', average='macro'))
-        metrics['confusion_matrix'] = [list(r) for r in confusion_matrix(y_class, yhat_class)]
+        metrics['confusion_matrix'] =[[int(x) for x in row] for row in confusion_matrix(y_class, yhat_class)]
+
 
     else:
         if isinstance(y, np.ndarray):
