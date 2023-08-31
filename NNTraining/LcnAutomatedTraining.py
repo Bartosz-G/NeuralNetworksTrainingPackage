@@ -375,8 +375,8 @@ def calc_metrics(y, yhat, is_categorical):
         # ===TODO: Refactor as a seperate, metrics function
         # ==============================================================
 
-        metrics['accuracy_score'] = accuracy_score(y_class, yhat_class)
-        metrics['roc_auc_score'] = roc_auc_score(y_score, yhat_score, multi_class='ovo', average='macro')
+        metrics['accuracy_score'] = float(accuracy_score(y_class, yhat_class))
+        metrics['roc_auc_score'] = float(roc_auc_score(y_score, yhat_score, multi_class='ovo', average='macro'))
         metrics['confusion_matrix'] = [list(r) for r in confusion_matrix(y_class, yhat_class)]
 
     else:
@@ -398,8 +398,8 @@ def calc_metrics(y, yhat, is_categorical):
         # ===TODO: Refactor as a seperate, metrics function
         # ==============================================================
 
-        metrics['r2_score'] = r2_score(y, yhat)
-        metrics['RMSE'] = mean_squared_error(y, yhat, squared=False)
+        metrics['r2_score'] = float(r2_score(y, yhat))
+        metrics['RMSE'] = float(mean_squared_error(y, yhat, squared=False))
         metrics['se_quant'] = ((yhat - y)**2).quantile([0.01, 0.025, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.975, 0.99]).to_dict()
 
     return metrics
