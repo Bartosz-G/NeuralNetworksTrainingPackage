@@ -89,7 +89,7 @@ def test_metrics(args, model, device, test_loader, metrics_func, test_set_name):
         ###############
 
         if args.task == 'classification':
-
+            pass
 
             # test_loss += F.cross_entropy(output, target, reduction='sum').item()
             # output = torch.softmax(output, dim=-1)
