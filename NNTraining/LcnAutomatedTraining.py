@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import torch
-from torcheval.metrics.functional import r2_score as r2_score_torch
+#from torcheval.metrics.functional import r2_score as r2_score_torch
 from sklearn.model_selection import KFold
 from sklearn.utils import shuffle
 from sklearn.metrics import accuracy_score, roc_auc_score, confusion_matrix, r2_score, mean_squared_error
@@ -408,52 +408,53 @@ def calc_metrics(y, yhat, is_categorical):
 # ==============================================================
 # ===TODO: Write a pytorch function for handling metrics
 # ==============================================================
-def calc_metrics_torch(y, yhat, is_categorical):
-    assert isinstance(y, torch.Tensor) and isinstance(yhat, torch.Tensor), "this function only handles torch.Tensors, for other dtypes use calc_metrics"
-
-
-
-    metrics = {}
-    if is_categorical:
-        y_score, yhat_score = y.detach(), yhat.detach()
-
-        y_true, y_pred = torch.argmax(y_score, dim=1), torch.argmax(yhat_score, dim=1)
-
-        # Number of classes
-        num_classes = y.shape[1]
-
-        # Create a confusion matrix
-        index_combinations = num_classes * y_true + y_pred
-        unique_vals, unique_counts = torch.unique(index_combinations, return_counts=True)
-
-        confusion_mat = torch.zeros(num_classes, num_classes, dtype=torch.int).to(y.device)
-
-        unique_counts = unique_counts.to(torch.int)  # Convert unique_counts to int dtype
-        confusion_mat[(unique_vals // num_classes), (unique_vals % num_classes)] = unique_counts
-
-        # Calculate accuracy
-        correct = torch.diag(confusion_mat).sum().item()
-        total = y.shape[0]
-        accuracy = correct / total
-
-        y_score, yhat_score = y_score.cpu().numpy(), yhat_score.cpu().numpy()
-        metrics['accuracy_score'] = accuracy
-        metrics['roc_auc_score'] = roc_auc_score(y_score, yhat_score, multi_class='ovo', average='macro')
-        metrics['confusion_matrix'] = confusion_mat
-
-    else:
-        y, yhat = y.detach(), yhat.detach()
-
-        standard_errors = ((yhat - y) ** 2)
-        MSE = standard_errors.mean()
-        RMSE = torch.sqrt(MSE)
-        standard_errors_pd = pd.DataFrame(standard_errors.cpu().numpy())
-
-        metrics['r2_score'] = r2_score_torch(y, yhat).item()
-        metrics['RMSE'] = RMSE.item()
-        metrics['se_quant'] = standard_errors_pd.quantile([0.01, 0.025, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.975, 0.99]).to_dict()
-
-    return metrics
+# def calc_metrics_torch(y, yhat, is_categorical):
+#     assert isinstance(y, torch.Tensor) and isinstance(yhat, torch.Tensor), "this function only handles torch.Tensors, for other dtypes use calc_metrics"
+#
+#
+#
+#     metrics = {}
+#     if is_categorical:
+#         y_score, yhat_score = y.detach(), yhat.detach()
+#
+#         y_true, y_pred = torch.argmax(y_score, dim=1), torch.argmax(yhat_score, dim=1)
+#
+#         # Number of classes
+#         num_classes = y.shape[1]
+#
+#         # Create a confusion matrix
+#         index_combinations = num_classes * y_true + y_pred
+#         unique_vals, unique_counts = torch.unique(index_combinations, return_counts=True)
+#
+#         confusion_mat = torch.zeros(num_classes, num_classes, dtype=torch.int).to(y.device)
+#
+#         unique_counts = unique_counts.to(torch.int)  # Convert unique_counts to int dtype
+#         confusion_mat[(unique_vals // num_classes), (unique_vals % num_classes)] = unique_counts
+#
+#         # Calculate accuracy
+#         correct = torch.diag(confusion_mat).sum().item()
+#         total = y.shape[0]
+#         accuracy = correct / total
+#
+#         y_score, yhat_score = y_score.cpu().numpy(), yhat_score.cpu().numpy()
+#         confusion_mat_list = confusion_mat.cpu().tolist()
+#         metrics['accuracy_score'] = accuracy
+#         metrics['roc_auc_score'] = roc_auc_score(y_score, yhat_score, multi_class='ovo', average='macro')
+#         metrics['confusion_matrix'] = confusion_mat_list
+#
+#     else:
+#         y, yhat = y.detach(), yhat.detach()
+#
+#         standard_errors = ((yhat - y) ** 2)
+#         MSE = standard_errors.mean()
+#         RMSE = torch.sqrt(MSE)
+#         standard_errors_pd = pd.DataFrame(standard_errors.cpu().numpy())
+#
+#         metrics['r2_score'] = r2_score_torch(y, yhat).item()
+#         metrics['RMSE'] = RMSE.item()
+#         metrics['se_quant'] = standard_errors_pd.quantile([0.01, 0.025, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.975, 0.99]).to_dict()
+#
+#     return metrics
 
 # ==============================================================
 

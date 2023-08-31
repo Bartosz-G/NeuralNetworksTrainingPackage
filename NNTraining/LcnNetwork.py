@@ -3,6 +3,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 
+def get_alpha(epoch, total_epoch):
+    return float(epoch) / float(total_epoch)
+
 def my_softplus(x, tau=1., threshold=20.):
     truncate_mask = (x > threshold).type(torch.cuda.FloatTensor)
     return truncate_mask * x + (1. - truncate_mask) * (tau * torch.log(1 + torch.exp((1. - truncate_mask) * x / tau)))
