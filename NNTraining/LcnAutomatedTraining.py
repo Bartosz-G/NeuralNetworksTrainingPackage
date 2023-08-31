@@ -426,7 +426,7 @@ def calc_metrics_torch(y, yhat, is_categorical):
         index_combinations = num_classes * y_true + y_pred
         unique_vals, unique_counts = torch.unique(index_combinations, return_counts=True)
 
-        confusion_mat = torch.zeros(num_classes, num_classes, dtype=torch.int)
+        confusion_mat = torch.zeros(num_classes, num_classes, dtype=torch.int).to(y.device)
 
         unique_counts = unique_counts.to(torch.int)  # Convert unique_counts to int dtype
         confusion_mat[(unique_vals // num_classes), (unique_vals % num_classes)] = unique_counts
