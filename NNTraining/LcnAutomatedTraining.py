@@ -442,11 +442,14 @@ def calc_metrics_torch(y, yhat, is_categorical):
     else:
         y, yhat = y.detach(), yhat.detach()
 
-        standard_errors = pd.DataFrame(((yhat - y) ** 2).cpu().numpy())
+        standard_errors = ((yhat - y) ** 2)
+        MSE = standard_errors.mean()
+        RMSE = torch.sqrt(MSE)
+        standard_errors_pd = pd.DataFrame(standard_errors.cpu().numpy())
 
         metrics['r2_score'] = torcheval.metrics.functional.r2_score(y, yhat).item()
-        metrics['RMSE'] = mean_squared_error(y, yhat, squared=False)
-        metrics['se_quant'] = standard_errors.quantile([0.01, 0.025, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.975, 0.99]).to_dict()
+        metrics['RMSE'] = RMSE.item()
+        metrics['se_quant'] = standard_errors_pd.quantile([0.01, 0.025, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.975, 0.99]).to_dict()
 
 
 # ==============================================================
