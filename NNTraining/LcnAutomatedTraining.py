@@ -4,7 +4,7 @@ import torch
 from sklearn.model_selection import KFold
 from sklearn.utils import shuffle
 from sklearn.metrics import accuracy_score, roc_auc_score, confusion_matrix, r2_score, mean_squared_error
-
+from sklearn.preprocessing import QuantileTransformer
 
 
 
@@ -113,6 +113,35 @@ def get_train_test(X, y, categorical_indicator, attribute_names, train_split = 0
     assert isinstance(X, (pd.Series, pd.DataFrame)), "X must be a Pandas Series or DataFrame"
     assert isinstance(y, (pd.Series, pd.DataFrame)), "Y must be a Pandas Series or DataFrame"
 
+    # itterative filtering and processing
+    valid_cols = []
+    categorical_indicator_filtered = []
+    for colname, nunique, iscat in zip(attribute_names, X.apply(pd.Series.nunique).values, categorical_indicator):
+
+        if iscat:
+            # filtering out high cardinality categorical
+            if nunique <= 20:
+                valid_cols.append(colname)
+                categorical_indicator_filtered.append(iscat)
+
+        # converting low numeric to categorical
+        elif nunique <= 2:
+            valid_cols.append(colname)
+            categorical_indicator_filtered.append(True)
+
+        # only keeping high cardinality numeric
+        elif nunique >= 10:
+            valid_cols.append(colname)
+            categorical_indicator_filtered.append(False)
+
+        # normalizing numeric columns with quantile distribution
+        if not iscat:
+            qt = QuantileTransformer(random_state=seed)
+            X[colname] = qt.fit_transform(X[[colname]])
+
+    # only keeping valid columns
+    X = X[valid_cols]
+
     if not isinstance(X, pd.DataFrame):
         X = X.to_frame()
     if not isinstance(y, pd.DataFrame):
@@ -121,14 +150,14 @@ def get_train_test(X, y, categorical_indicator, attribute_names, train_split = 0
     if seed:
         np.random.seed(seed)
 
-
     if trunctuate:
         X, y = shuffle(X, y, random_state=seed)
         X, y = X.head(trunctuate), y.head(trunctuate)
 
 
+
     # Fixed to one-hot encoding for all categorical variables
-    X = pd.get_dummies(X, X.columns[categorical_indicator])
+    X = pd.get_dummies(X, X.columns[categorical_indicator_filtered])
 
     is_categorical = any(y[col].dtype.name == 'category' for col in y.columns)
     if is_categorical:
@@ -165,6 +194,35 @@ def get_train_val_test(X, y, categorical_indicator, attribute_names,
     assert isinstance(X, (pd.Series, pd.DataFrame)), "X must be a Pandas Series or DataFrame"
     assert isinstance(y, (pd.Series, pd.DataFrame)), "Y must be a Pandas Series or DataFrame"
 
+    # itterative filtering and processing
+    valid_cols = []
+    categorical_indicator_filtered = []
+    for colname, nunique, iscat in zip(attribute_names, X.apply(pd.Series.nunique).values, categorical_indicator):
+
+        if iscat:
+            # filtering out high cardinality categorical
+            if nunique <= 20:
+                valid_cols.append(colname)
+                categorical_indicator_filtered.append(iscat)
+
+        # converting low numeric to categorical
+        elif nunique <= 2:
+            valid_cols.append(colname)
+            categorical_indicator_filtered.append(True)
+
+        # only keeping high cardinality numeric
+        elif nunique >= 10:
+            valid_cols.append(colname)
+            categorical_indicator_filtered.append(False)
+
+        # normalizing numeric columns with quantile distribution
+        if not iscat:
+            qt = QuantileTransformer(random_state=seed)
+            X[colname] = qt.fit_transform(X[[colname]])
+
+    # only keeping valid columns
+    X = X[valid_cols]
+
     if not isinstance(X, pd.DataFrame):
         X = X.to_frame()
     if not isinstance(y, pd.DataFrame):
@@ -180,7 +238,7 @@ def get_train_val_test(X, y, categorical_indicator, attribute_names,
 
 
     # Fixed to one-hot encoding for all categorical variables
-    X = pd.get_dummies(X, X.columns[categorical_indicator])
+    X = pd.get_dummies(X, X.columns[categorical_indicator_filtered])
 
     is_categorical = any(y[col].dtype.name == 'category' for col in y.columns)
     if is_categorical:
