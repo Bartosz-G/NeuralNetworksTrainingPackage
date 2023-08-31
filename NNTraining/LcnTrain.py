@@ -5,6 +5,10 @@ import torch.nn.functional as F
 import numpy as np
 from sklearn.metrics import roc_auc_score
 
+
+# ==============================================================
+# ===TODO: Replace with our AverageMeter
+# ==============================================================
 class AverageMeter(object):
     """Computes and stores the average and current value"""
     def __init__(self):
@@ -26,6 +30,7 @@ def print_args(args):
     print("\nParameters:")
     for attr, value in sorted(args.__dict__.items()):
         print("\t{}={}".format(attr.upper(), value))
+# ==============================================================
 
 
 def train(args, model, device, train_loader, optimizer, epoch, anneal, alpha=1):

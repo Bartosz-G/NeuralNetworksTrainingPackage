@@ -134,8 +134,6 @@ def get_train_test(X, y, categorical_indicator, attribute_names, train_split = 0
     if is_categorical:
         y = pd.get_dummies(y)
     # ==============================================================
-    # ===TODO: Refactor as a seperate, preprocessing function
-    # ==============================================================
 
     data_nrows = len(X)
     num_train_samples = int(data_nrows * train_split)
@@ -187,8 +185,6 @@ def get_train_val_test(X, y, categorical_indicator, attribute_names,
     is_categorical = any(y[col].dtype.name == 'category' for col in y.columns)
     if is_categorical:
         y = pd.get_dummies(y)
-    # ==============================================================
-    # ===TODO: Refactor as a seperate, preprocessing function
     # ==============================================================
 
 
