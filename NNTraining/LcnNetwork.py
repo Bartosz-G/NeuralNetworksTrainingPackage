@@ -142,7 +142,7 @@ class Net(nn.Module):
             elif anneal == 'none':
                 neur_deriv = (next_embed > 0).type(torch.cuda.FloatTensor)
                 next_embed = F.relu(next_embed)
-            # Added by us
+            # Added: Bart
             else:
                 raise AssertionError("Anneal metric passed incorrectly to forward")
 

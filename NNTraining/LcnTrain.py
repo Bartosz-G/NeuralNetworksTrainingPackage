@@ -55,10 +55,9 @@ def train(args, model, device, train_loader, optimizer, epoch, anneal, alpha=1):
 
         optimizer.zero_grad()
         if args.task == 'classification':
-            # Added
-            # Converting one-hot-encoding back to class indices
-            target = torch.argmax(target, dim=1)
-            loss = F.cross_entropy(output, target)
+            # Added: Bart
+            target_one_dim = torch.argmax(target, dim=1)
+            loss = F.cross_entropy(output, target_one_dim)
         elif args.task == 'regression':
             output = output.squeeze(-1)
             loss = ((output - target) ** 2).mean()
@@ -73,6 +72,10 @@ def train(args, model, device, train_loader, optimizer, epoch, anneal, alpha=1):
 def test_metrics(args, model, device, test_loader, metrics_func, test_set_name):
     with torch.no_grad():
         model.eval()
+
+        # ==============================================================
+        # ===TODO: Add batched dataloader handling
+        # ==============================================================
 
         data, target = next(iter(test_loader))
 
@@ -89,22 +92,16 @@ def test_metrics(args, model, device, test_loader, metrics_func, test_set_name):
         ###############
 
         if args.task == 'classification':
-            pass
-
-            # test_loss += F.cross_entropy(output, target, reduction='sum').item()
-            # output = torch.softmax(output, dim=-1)
-            # score += list(output[:, 1].cpu().data.numpy())
-            # pred = output.max(1, keepdim=True)[1]  # get the index of the max log-probability
-            # correct += pred.eq(target.view_as(pred)).sum().item()
-            # output = output[:, 1]
+            output = torch.softmax(output, dim=-1)
+            metrics = metrics_func(target, output, True)
         elif args.task == 'regression':
-            metrics = metrics_func(target, output.detach(), False)
+            metrics = metrics_func(target, output, False)
 
         return metrics
 
 
 
-def test(args, model, device, test_loader, test_set_name):
+def test_loss(args, model, device, test_loader, test_set_name):
     with torch.no_grad():
         model.eval()
         test_loss = 0
@@ -134,27 +131,21 @@ def test(args, model, device, test_loader, test_set_name):
             ###############
 
             if args.task == 'classification':
-                test_loss += F.cross_entropy(output, target, reduction='sum').item()
-                output = torch.softmax(output, dim=-1)
-                score += list(output[:, 1].cpu().data.numpy())
-                pred = output.max(1, keepdim=True)[1]  # get the index of the max log-probability
-                correct += pred.eq(target.view_as(pred)).sum().item()
-                output = output[:, 1]
+                # Modified: Bart
+                target_one_dim = torch.argmax(target, dim=1)
+                test_loss += F.cross_entropy(output, target_one_dim, reduction='sum').item()
+                # Removed: Bart
+                # output = torch.softmax(output, dim=-1)
+                # ...
+                # output = output[:, 1]
             elif args.task == 'regression':
                 output = output.squeeze(-1)
                 test_loss += ((output - target) ** 2).mean().item() * len(target)
 
         test_loss /= dataset_len
-        if args.task == 'classification':
-            if args.output_dim == 2:
-                AUC = roc_auc_score(label, score)
-                test_score = AUC
-            else:
-                AUC = -1
-                test_score = correct / dataset_len
 
-        elif args.task == 'regression':
-            RMSE = np.sqrt(test_loss)
-            test_score = -RMSE
+        # Removed: Bart
+        # if args.task == 'classification':
+        # ...
 
-        return test_loss, test_score
+        return test_loss

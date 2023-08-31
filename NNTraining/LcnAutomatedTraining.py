@@ -250,6 +250,10 @@ class kfold_dataloader_iterator():
 # ========== Metric Calculations =============
 
 def np_get_cls_score(y, yhat):
+    # ==============================================================
+    # ===TODO: Add multi-class handling
+    # ==============================================================
+
     # Expects np.ndarray
     assert y.shape == yhat.shape, f"expects same dimensions, received y:{y.shape}, yhat: {yhat.shape}"
     assert y.shape[-1] >= 2 and yhat.shape[-1] >= 2, f"for classification expects score metrics, not binary classifications"
@@ -264,6 +268,10 @@ def np_get_cls_score(y, yhat):
 
 
 def tensor_get_cls_score(y, yhat):
+    # ==============================================================
+    # ===TODO: Add multi-class handling
+    # ==============================================================
+
     # Expects torch.Tensor
     assert y.shape == yhat.shape, f"expects same dimensions, received y:{y.shape}, yhat: {yhat.shape}"
     assert y.shape[-1] >= 2 and yhat.shape[-1] >= 2, f"for classification expects score metrics, not binary classifications"
@@ -278,6 +286,10 @@ def tensor_get_cls_score(y, yhat):
 
 
 def pd_get_cls_score(y, yhat):
+    # ==============================================================
+    # ===TODO: Add multi-class handling
+    # ==============================================================
+
     # expects pd.DataFrame
     assert y.shape == yhat.shape, f"expects same dimensions, received y:{y.shape}, yhat: {yhat.shape}"
     assert y.shape[-1] >= 2 and yhat.shape[-1] >= 2, f"for classification expects score metrics, not binary classifications"
