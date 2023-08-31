@@ -247,28 +247,91 @@ class kfold_dataloader_iterator():
         return train_dataloader, val_dataloader
 
 
+# ========== Metric Calculations =============
+
+def np_get_cls_score(y, yhat):
+    # Expects np.ndarray
+    assert y.shape == yhat.shape, f"expects same dimensions, received y:{y.shape}, yhat: {yhat.shape}"
+    assert y.shape[-1] >= 2 and yhat.shape[-1] >= 2, f"for classification expects score metrics, not binary classifications"
+
+    y_class = np.argmax(y, axis=1)
+    yhat_class = np.argmax(yhat, axis=1)
+
+    y_score = y.copy()
+    yhat_score = yhat.copy()
+
+    return y_class, yhat_class, y_score, yhat_score
+
+
+def tensor_get_cls_score(y, yhat):
+    # Expects torch.Tensor
+    assert y.shape == yhat.shape, f"expects same dimensions, received y:{y.shape}, yhat: {yhat.shape}"
+    assert y.shape[-1] >= 2 and yhat.shape[-1] >= 2, f"for classification expects score metrics, not binary classifications"
+
+    y_class = torch.argmax(y, dim=1).detach().cpu().numpy()
+    yhat_class = yhat.max(1, keepdim=True)[1].detach().cpu().numpy()
+
+    y_score = y.detach().cpu().numpy()
+    yhat_score = yhat.detach().cpu().numpy()
+
+    return y_class, yhat_class, y_score, yhat_score
+
+
+def pd_get_cls_score(y, yhat):
+    # expects pd.DataFrame
+    assert y.shape == yhat.shape, f"expects same dimensions, received y:{y.shape}, yhat: {yhat.shape}"
+    assert y.shape[-1] >= 2 and yhat.shape[-1] >= 2, f"for classification expects score metrics, not binary classifications"
+
+    y_class = np.argmax(y.values, axis=1)
+    yhat_class = np.argmax(yhat.values, axis=1)
+
+    y_score = y.values.copy()
+    yhat_score = yhat.values.copy()
+
+    return y_class, yhat_class, y_score, yhat_score
+
+
 def calc_metrics(y, yhat, is_categorical):
     # Check if inputs are NumPy arrays or torch tensors, and convert to DataFrame
-    if isinstance(y, np.ndarray):
-        y = pd.DataFrame(y)
-    elif isinstance(y, torch.Tensor):
-        y = pd.DataFrame(y.cpu().numpy())
-    elif not isinstance(y, pd.DataFrame):
-        raise AssertionError("Allowed data types of y and yhat are: np.ndarray, torch.Tensor, pd.DataFrame")
-
-    if isinstance(yhat, np.ndarray):
-        yhat = pd.DataFrame(yhat)
-    elif isinstance(yhat, torch.Tensor):
-        yhat = pd.DataFrame(yhat.cpu().numpy())
-    elif not isinstance(yhat, pd.DataFrame):
-        raise AssertionError("Allowed data types of y and yhat are: np.ndarray, torch.Tensor, pd.DataFrame")
 
     metrics = {}
     if is_categorical:
-        metrics['accuracy_score'] = accuracy_score(y, yhat)
-        metrics['roc_auc_score'] = roc_auc_score(y, yhat, multi_class='ovo', average='macro')
-        metrics['confusion_matrix'] = [ list(r) for r in confusion_matrix(y, yhat)]
+        if isinstance(y, np.ndarray) and isinstance(yhat, np.ndarray):
+            y_class, yhat_class, y_score, yhat_score = np_get_cls_score(y, yhat)
+        elif isinstance(y, torch.Tensor) and isinstance(yhat, torch.Tensor):
+            y_class, yhat_class, y_score, yhat_score = tensor_get_cls_score(y, yhat)
+        elif isinstance(y, pd.DataFrame) and isinstance(yhat, pd.DataFrame):
+            y_class, yhat_class, y_score, yhat_score = pd_get_cls_score(y, yhat)
+        else:
+            raise TypeError("Type missmatch between y and yhat, both need to be one of type: np.ndarray, torch.Tensor, pd.DataFrame")
+
+        # ==============================================================
+        # ===TODO: Refactor as a seperate, metrics function
+        # ==============================================================
+
+        metrics['accuracy_score'] = accuracy_score(y_class, yhat_class)
+        metrics['roc_auc_score'] = roc_auc_score(y_score, yhat_score, multi_class='ovo', average='macro')
+        metrics['confusion_matrix'] = [ list(r) for r in confusion_matrix(y_class, yhat_class)]
+
     else:
+        if isinstance(y, np.ndarray):
+            y = pd.DataFrame(y)
+        elif isinstance(y, torch.Tensor):
+            y = pd.DataFrame(y.detach().cpu().numpy())
+        elif not isinstance(y, pd.DataFrame):
+            raise AssertionError("Allowed data types of y and yhat are: np.ndarray, torch.Tensor, pd.DataFrame")
+
+        if isinstance(yhat, np.ndarray):
+            yhat = pd.DataFrame(yhat)
+        elif isinstance(yhat, torch.Tensor):
+            yhat = pd.DataFrame(yhat.detach().cpu().numpy())
+        elif not isinstance(yhat, pd.DataFrame):
+            raise AssertionError("Allowed data types of y and yhat are: np.ndarray, torch.Tensor, pd.DataFrame")
+
+        # ==============================================================
+        # ===TODO: Refactor as a seperate, metrics function
+        # ==============================================================
+
         metrics['r2_score'] = r2_score(y, yhat)
         metrics['RMSE'] = mean_squared_error(y, yhat, squared=False)
         metrics['se_quant'] = ((yhat - y)**2).quantile([0.01, 0.025, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.975, 0.99]).to_dict()
