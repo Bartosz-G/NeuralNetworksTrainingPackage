@@ -55,6 +55,9 @@ def train(args, model, device, train_loader, optimizer, epoch, anneal, alpha=1):
 
         optimizer.zero_grad()
         if args.task == 'classification':
+            # Added
+            # Converting one-hot-encoding back to class indices
+            target = torch.argmax(target, dim=1)
             loss = F.cross_entropy(output, target)
         elif args.task == 'regression':
             output = output.squeeze(-1)
@@ -65,6 +68,40 @@ def train(args, model, device, train_loader, optimizer, epoch, anneal, alpha=1):
         avg_loss.update(loss.item())
 
     return avg_loss.avg
+
+# Modified from the original paper
+def test_metrics(args, model, device, test_loader, metrics_func, test_set_name):
+    with torch.no_grad():
+        model.eval()
+
+        data, target = next(iter(test_loader))
+
+        data, target = data.to(device), target.to(device)
+        if args.task == 'classification':
+            target = target.type(torch.cuda.LongTensor)
+
+        ###############
+        data.requires_grad = True
+        if model.net_type == 'locally_constant':
+            output, relu_masks = model(data, p=0, training=False)
+        elif model.net_type == 'locally_linear':
+            output, relu_masks = model.normal_forward(data, p=0, training=False)
+        ###############
+
+        if args.task == 'classification':
+
+
+            # test_loss += F.cross_entropy(output, target, reduction='sum').item()
+            # output = torch.softmax(output, dim=-1)
+            # score += list(output[:, 1].cpu().data.numpy())
+            # pred = output.max(1, keepdim=True)[1]  # get the index of the max log-probability
+            # correct += pred.eq(target.view_as(pred)).sum().item()
+            # output = output[:, 1]
+        elif args.task == 'regression':
+            metrics = metrics_func(target, output.detach(), False)
+
+        return metrics
+
 
 
 def test(args, model, device, test_loader, test_set_name):
