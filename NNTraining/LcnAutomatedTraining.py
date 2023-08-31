@@ -1,11 +1,11 @@
 import numpy as np
 import pandas as pd
 import torch
+import torcheval
 from sklearn.model_selection import KFold
 from sklearn.utils import shuffle
 from sklearn.metrics import accuracy_score, roc_auc_score, confusion_matrix, r2_score, mean_squared_error
 from sklearn.preprocessing import QuantileTransformer
-
 
 
 
@@ -417,15 +417,36 @@ def calc_metrics_torch(y, yhat, is_categorical):
     if is_categorical:
         y_score, yhat_score = y.detach(), yhat.detach()
 
-        metrics['accuracy_score'] = accuracy_score(y_class, yhat_class)
+        y_true, y_pred = torch.argmax(y_score, dim=1), torch.argmax(yhat_score, dim=1)
+
+        # Number of classes
+        num_classes = y.shape[1]
+
+        # Create a confusion matrix
+        index_combinations = num_classes * y_true + y_pred
+        unique_vals, unique_counts = torch.unique(index_combinations, return_counts=True)
+
+        confusion_mat = torch.zeros(num_classes, num_classes, dtype=torch.int)
+        confusion_mat[(unique_vals // num_classes), (unique_vals % num_classes)] = unique_counts
+
+        # Calculate accuracy
+        correct = torch.diag(confusion_mat).sum().item()
+        total = y.shape[0]
+        accuracy = correct / total
+
+        y_score, yhat_score = y_score.cpu().numpy(), yhat_score.cpu().numpy()
+        metrics['accuracy_score'] = accuracy
         metrics['roc_auc_score'] = roc_auc_score(y_score, yhat_score, multi_class='ovo', average='macro')
-        metrics['confusion_matrix'] = [list(r) for r in confusion_matrix(y_class, yhat_class)]
+        metrics['confusion_matrix'] = confusion_mat
+
     else:
         y, yhat = y.detach(), yhat.detach()
 
-        metrics['r2_score'] = r2_score(y, yhat)
+        standard_errors = pd.DataFrame(((yhat - y) ** 2).cpu().numpy())
+
+        metrics['r2_score'] = torcheval.metrics.functional.r2_score(y, yhat).item()
         metrics['RMSE'] = mean_squared_error(y, yhat, squared=False)
-        metrics['se_quant'] = ((yhat - y) ** 2).quantile([0.01, 0.025, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.975, 0.99]).to_dict()
+        metrics['se_quant'] = standard_errors.quantile([0.01, 0.025, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.975, 0.99]).to_dict()
 
 
 # ==============================================================

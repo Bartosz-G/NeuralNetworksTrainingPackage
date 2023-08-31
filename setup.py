@@ -14,5 +14,5 @@ setup(
     author_email='gawinbartosz@icloud.com',
     packages=find_packages(),
     zip_safe=False,
-    install_requires=['numpy', 'pandas', 'scikit-learn', 'torch']
+    install_requires=['numpy', 'pandas', 'scikit-learn', 'torch', 'torcheval']
 )
