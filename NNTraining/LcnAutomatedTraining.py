@@ -319,7 +319,7 @@ def calc_metrics(y, yhat, is_categorical):
 
         metrics['accuracy_score'] = accuracy_score(y_class, yhat_class)
         metrics['roc_auc_score'] = roc_auc_score(y_score, yhat_score, multi_class='ovo', average='macro')
-        metrics['confusion_matrix'] = [ list(r) for r in confusion_matrix(y_class, yhat_class)]
+        metrics['confusion_matrix'] = [list(r) for r in confusion_matrix(y_class, yhat_class)]
 
     else:
         if isinstance(y, np.ndarray):
@@ -346,6 +346,31 @@ def calc_metrics(y, yhat, is_categorical):
 
     return metrics
 
+
+# ==============================================================
+# ===TODO: Write a pytorch function for handling metrics
+# ==============================================================
+def calc_metrics_torch(y, yhat, is_categorical):
+    assert isinstance(y, torch.Tensor) and isinstance(yhat, torch.Tensor), "this function only handles torch.Tensors, for other dtypes use calc_metrics"
+
+
+
+    metrics = {}
+    if is_categorical:
+        y_score, yhat_score = y.detach(), yhat.detach()
+
+        metrics['accuracy_score'] = accuracy_score(y_class, yhat_class)
+        metrics['roc_auc_score'] = roc_auc_score(y_score, yhat_score, multi_class='ovo', average='macro')
+        metrics['confusion_matrix'] = [list(r) for r in confusion_matrix(y_class, yhat_class)]
+    else:
+        y, yhat = y.detach(), yhat.detach()
+
+        metrics['r2_score'] = r2_score(y, yhat)
+        metrics['RMSE'] = mean_squared_error(y, yhat, squared=False)
+        metrics['se_quant'] = ((yhat - y) ** 2).quantile([0.01, 0.025, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.975, 0.99]).to_dict()
+
+
+# ==============================================================
 
 if __name__ == "__main__":
 
