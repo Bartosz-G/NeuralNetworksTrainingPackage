@@ -74,7 +74,7 @@ def train(args, model, device, train_loader, optimizer, epoch, anneal, alpha=1):
     return avg_loss.avg
 
 # Modified from the original paper
-def test_metrics(args, model, device, test_loader, metrics_func, test_set_name):
+def get_metrics(args, model, device, test_loader, metrics_func, test_set_name):
     with torch.no_grad():
         model.eval()
 
@@ -106,7 +106,7 @@ def test_metrics(args, model, device, test_loader, metrics_func, test_set_name):
 
 
 
-def test_loss(args, model, device, test_loader, test_set_name):
+def get_loss(args, model, device, test_loader, test_set_name):
     with torch.no_grad():
         model.eval()
         test_loss = 0
