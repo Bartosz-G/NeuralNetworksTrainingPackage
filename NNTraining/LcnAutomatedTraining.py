@@ -453,6 +453,7 @@ def calc_metrics_torch(y, yhat, is_categorical):
         metrics['RMSE'] = RMSE.item()
         metrics['se_quant'] = standard_errors_pd.quantile([0.01, 0.025, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.975, 0.99]).to_dict()
 
+    return metrics
 
 # ==============================================================
 
