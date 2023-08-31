@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import torch
-import torcheval
+from torcheval.metrics.functional import r2_score as r2_score_torch
 from sklearn.model_selection import KFold
 from sklearn.utils import shuffle
 from sklearn.metrics import accuracy_score, roc_auc_score, confusion_matrix, r2_score, mean_squared_error
@@ -447,7 +447,7 @@ def calc_metrics_torch(y, yhat, is_categorical):
         RMSE = torch.sqrt(MSE)
         standard_errors_pd = pd.DataFrame(standard_errors.cpu().numpy())
 
-        metrics['r2_score'] = torcheval.metrics.functional.r2_score(y, yhat).item()
+        metrics['r2_score'] = r2_score_torch(y, yhat).item()
         metrics['RMSE'] = RMSE.item()
         metrics['se_quant'] = standard_errors_pd.quantile([0.01, 0.025, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.975, 0.99]).to_dict()
 
