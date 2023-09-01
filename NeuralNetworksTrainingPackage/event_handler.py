@@ -1,4 +1,6 @@
 import copy
+import numpy
+import pandas as pd
 
 class dataPreProcessingEventEmitter():
     def __init__(self):
@@ -17,6 +19,9 @@ class dataPreProcessingEventEmitter():
     def apply(self, event_name, X, y, categorical_indicator, attribute_names):
         if not event_name in self.events:
             return False
+
+        assert isinstance(X, (pd.Series, pd.DataFrame)), "X must be a Pandas Series or DataFrame"
+        assert isinstance(y, (pd.Series, pd.DataFrame)), "Y must be a Pandas Series or DataFrame"
 
         self.X_copy = copy.deepcopy(X)
         self.y_copy = copy.deepcopy(y)

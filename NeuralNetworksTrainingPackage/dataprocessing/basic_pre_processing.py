@@ -6,6 +6,30 @@ from sklearn.utils import shuffle
 from sklearn.preprocessing import QuantileTransformer
 
 
+# =============== Pre-processing functions to be applied before ===============
+
+class trunctuateData():
+    def __init__(self, n, seed = None):
+        self.n = n
+        self.seed = seed
+
+    def apply(self, X, y, categorical_indicator, attribute_names):
+        if self.seed:
+            X, y = shuffle(X, y, random_state=self.seed)
+        else:
+            X, y = shuffle(X, y)
+        X, y = X.head(self.n), y.head(self.n)
+
+        return X, y, categorical_indicator, attribute_names
+
+
+
+
+
+
+
+
+# ============= Pytorch Dataset Objects =====================
 class CustomDataset(torch.utils.data.Dataset):
     def __init__(self, X, Y, relative_indices, tensor_type=torch.float):
         assert isinstance(X, pd.DataFrame), "X must be a Pandas DataFrame"
