@@ -25,9 +25,9 @@ class trunctuateData():
 
 class filterCardinality():
     def __init__(self):
+        self.numeric_that_should_be_categorical = 2
         self.too_high_cardinality = 20
-        self.not_enough_numeric_to_keep = 2
-        self.too_small_cardinality = 10
+        self.not_enough_numeric = 10
 
     def apply(self, X, y, categorical_indicator, attribute_names):
         valid_cols = []
@@ -43,15 +43,19 @@ class filterCardinality():
                     attribute_names_filtered.append(name)
 
             # converting low numeric to categorical
-            elif nunique <= self.not_enough_numeric_to_keep:
+            elif nunique <= self.numeric_that_should_be_categorical:
                 valid_cols.append(colname)
                 categorical_indicator_filtered.append(True)
                 attribute_names_filtered.append(name)
 
             # only keeping high cardinality numeric
-            elif nunique >= self.too_small_cardinality:
+            elif nunique >= self.not_enough_numeric:
                 valid_cols.append(colname)
                 categorical_indicator_filtered.append(False)
+
+            else:
+                categorical_indicator_filtered.append(False)
+                attribute_names_filtered.append(name)
 
 
         return X[valid_cols], y, categorical_indicator_filtered, attribute_names_filtered
