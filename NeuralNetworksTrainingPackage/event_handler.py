@@ -32,6 +32,8 @@ class dataPreProcessingEventEmitter():
             for obj in self.events[event_name]:
                 X, y, categorical_indicator, attribute_names = obj.transform(X, y, categorical_indicator, attribute_names)
 
+            return X, y, categorical_indicator, attribute_names
+
         except Exception as e:
             X = self.X_copy
             y = self.y_copy
