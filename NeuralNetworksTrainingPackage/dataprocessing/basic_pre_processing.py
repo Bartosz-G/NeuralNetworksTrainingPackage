@@ -23,8 +23,38 @@ class trunctuateData():
         return X, y, categorical_indicator, attribute_names
 
 
+class filterCardinality():
+    def __init__(self):
+        self.too_high_cardinality = 20
+        self.not_enough_numeric_to_keep = 2
+        self.too_small_cardinality = 10
+
+    def apply(self, X, y, categorical_indicator, attribute_names):
+        valid_cols = []
+        categorical_indicator_filtered = []
+        attribute_names_filtered = []
+        for colname, nunique, iscat, name in zip(attribute_names, X.apply(pd.Series.nunique).values, categorical_indicator, attribute_names):
+
+            if iscat:
+                # filtering out high cardinality categorical
+                if nunique <= self.too_high_cardinality:
+                    valid_cols.append(colname)
+                    categorical_indicator_filtered.append(iscat)
+                    attribute_names_filtered.append(name)
+
+            # converting low numeric to categorical
+            elif nunique <= self.not_enough_numeric_to_keep:
+                valid_cols.append(colname)
+                categorical_indicator_filtered.append(True)
+                attribute_names_filtered.append(name)
+
+            # only keeping high cardinality numeric
+            elif nunique >= self.too_small_cardinality:
+                valid_cols.append(colname)
+                categorical_indicator_filtered.append(False)
 
 
+        return X[valid_cols], y, categorical_indicator_filtered, attribute_names_filtered
 
 
 
