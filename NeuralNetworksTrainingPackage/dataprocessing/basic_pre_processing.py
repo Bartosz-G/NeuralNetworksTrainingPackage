@@ -52,10 +52,9 @@ class filterCardinality():
             elif nunique >= self.not_enough_numeric:
                 valid_cols.append(colname)
                 categorical_indicator_filtered.append(False)
-
-            else:
-                categorical_indicator_filtered.append(False)
                 attribute_names_filtered.append(name)
+
+
 
 
         return X[valid_cols], y, categorical_indicator_filtered, attribute_names_filtered
