@@ -5,16 +5,21 @@ import pandas as pd
 class dataPreProcessingEventEmitter():
     def __init__(self):
         self.events = {}
+        self.seed = None
         self.X_copy = None
         self.y_copy = None
         self.categorical_indicators_copy = None
         self.attribute_names_copy = None
 
 
-    def addPreProcessing(self, event_name: str, obj):
+    def add_pre_processing(self, event_name: str, obj):
         if not event_name in self.events:
             self.events[event_name] = []
+        obj.parent = self
         self.events[event_name].append(obj)
+
+    def set_seed_for_all(self, seed):
+        self.seed = seed
 
     def apply(self, event_name, X, y, categorical_indicator, attribute_names):
         if not event_name in self.events:

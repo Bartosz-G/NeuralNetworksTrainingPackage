@@ -10,14 +10,15 @@ from sklearn.preprocessing import QuantileTransformer
 
 class trunctuateData():
     def __init__(self, n, seed = None):
+        self.parent = None
         self.n = n
         self.seed = seed
 
     def apply(self, X, y, categorical_indicator, attribute_names):
-        if self.seed:
-            X, y = shuffle(X, y, random_state=self.seed)
-        else:
-            X, y = shuffle(X, y)
+        if not self.seed:
+            self.seed = self.parent.seed
+
+        X, y = shuffle(X, y, random_state=self.seed)
         X, y = X.head(self.n), y.head(self.n)
 
         X,y = X.reset_index(drop=True), y.reset_index(drop=True)
@@ -27,6 +28,7 @@ class trunctuateData():
 
 class filterCardinality():
     def __init__(self):
+        self.parent = None
         self.numeric_that_should_be_categorical = 2
         self.too_high_cardinality = 20
         self.not_enough_numeric = 10
@@ -67,6 +69,7 @@ class quantileTransform():
                  subsample=10000,
                  random_state=None,
                  copy=True):
+        self.parent = None
         self.n_quantiles = n_quantiles
         self.output_distribution = output_distribution
         self.ignore_implicit_zeros = ignore_implicit_zeros
@@ -75,6 +78,9 @@ class quantileTransform():
         self.copy = copy
 
     def apply(self, X, y, categorical_indicator, attribute_names):
+        if not self.random_state:
+            self.random_state = self.parent.seed
+
         qt = QuantileTransformer(n_quantiles=self.n_quantiles,
                                       output_distribution=self.output_distribution,
                                       ignore_implicit_zeros=self.ignore_implicit_zeros,
@@ -92,7 +98,7 @@ class quantileTransform():
 
 class toDataFrame():
     def __init__(self):
-        pass
+        self.parent = None
 
     def apply(self, X, y, categorical_indicator, attribute_names):
         assert isinstance(X, (pd.Series, pd.DataFrame)), "X must be a Pandas Series or DataFrame"
@@ -108,7 +114,7 @@ class toDataFrame():
 
 class oneHotEncodePredictors():
     def __init__(self):
-        pass
+        self.parent = None
 
     def apply(self, X, y, categorical_indicator, attribute_names):
         X_dummies = pd.get_dummies(X, columns=X.columns[categorical_indicator])
@@ -126,7 +132,7 @@ class oneHotEncodePredictors():
 
 class oneHotEncodeTargets():
     def __init__(self):
-        pass
+        self.parent = None
 
     def apply(self, X, y, categorical_indicator, attribute_names):
 
