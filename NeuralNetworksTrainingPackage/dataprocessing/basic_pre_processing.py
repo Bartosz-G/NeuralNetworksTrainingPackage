@@ -111,10 +111,18 @@ class oneHotEncodePredictors():
         pass
 
     def apply(self, X, y, categorical_indicator, attribute_names):
-        X = pd.get_dummies(X, X.columns[categorical_indicator])
+        X_dummies = pd.get_dummies(X, columns=X.columns[categorical_indicator])
 
+        new_attribute_names = list(X_dummies.columns)
 
-        return X, y, categorical_indicator, attribute_names
+        original_categorical_columns = X.columns[categorical_indicator]
+
+        new_categorical_indicator = [
+            any(new_col.startswith(orig_cat_col + "_") for orig_cat_col in original_categorical_columns)
+            for new_col in new_attribute_names
+        ]
+
+        return X_dummies, y, new_categorical_indicator, new_attribute_names
 
 class oneHotEncodeTargets():
     def __init__(self):
