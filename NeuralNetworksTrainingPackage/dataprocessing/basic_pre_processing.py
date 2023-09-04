@@ -55,9 +55,61 @@ class filterCardinality():
                 attribute_names_filtered.append(name)
 
 
-
-
         return X[valid_cols], y, categorical_indicator_filtered, attribute_names_filtered
+
+
+
+class quantileTransform():
+    def __init__(self,n_quantiles=1000, output_distribution='uniform',
+                 ignore_implicit_zeros=False,
+                 subsample=10000,
+                 random_state=None,
+                 copy=True):
+        self.n_quantiles = n_quantiles
+        self.output_distribution = output_distribution
+        self.ignore_implicit_zeros = ignore_implicit_zeros
+        self.subsample = subsample
+        self.random_state = random_state
+        self.copy = copy
+
+    def apply(self, X, y, categorical_indicator, attribute_names):
+        qt = QuantileTransformer(n_quantiles=self.n_quantiles,
+                                      output_distribution=self.output_distribution,
+                                      ignore_implicit_zeros=self.ignore_implicit_zeros,
+                                      subsample=self.subsample,
+                                      random_state=self.random_state,
+                                      copy=self.copy)
+
+        X.loc[:, ~categorical_indicator] = qt.fit_transform(X.loc[:, ~categorical_indicator])
+
+        return X, y, categorical_indicator, attribute_names
+
+
+
+class toDataFrame():
+    def __init__(self):
+        pass
+
+    def apply(self, X, y, categorical_indicator, attribute_names):
+        assert isinstance(X, (pd.Series, pd.DataFrame)), "X must be a Pandas Series or DataFrame"
+        assert isinstance(y, (pd.Series, pd.DataFrame)), "Y must be a Pandas Series or DataFrame"
+
+        if not isinstance(X, pd.DataFrame):
+            X = X.to_frame()
+        if not isinstance(y, pd.DataFrame):
+            y = y.to_frame()
+
+        return X, y, categorical_indicator, attribute_names
+
+
+class oneHotEncode():
+    def __init__(self):
+        pass
+
+    def apply(self, X, y, categorical_indicator, attribute_names):
+        X = pd.get_dummies(X, X.columns[categorical_indicator])
+
+
 
 
 

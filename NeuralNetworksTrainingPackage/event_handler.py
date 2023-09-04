@@ -18,7 +18,7 @@ class dataPreProcessingEventEmitter():
 
     def apply(self, event_name, X, y, categorical_indicator, attribute_names):
         if not event_name in self.events:
-            return False
+            return X, y, categorical_indicator, attribute_names
 
         assert isinstance(X, (pd.Series, pd.DataFrame)), "X must be a Pandas Series or DataFrame"
         assert isinstance(y, (pd.Series, pd.DataFrame)), "Y must be a Pandas Series or DataFrame"
@@ -30,7 +30,7 @@ class dataPreProcessingEventEmitter():
 
         try:
             for obj in self.events[event_name]:
-                X, y, categorical_indicator, attribute_names = obj.transform(X, y, categorical_indicator, attribute_names)
+                X, y, categorical_indicator, attribute_names = obj.apply(X, y, categorical_indicator, attribute_names)
 
             return X, y, categorical_indicator, attribute_names
 
