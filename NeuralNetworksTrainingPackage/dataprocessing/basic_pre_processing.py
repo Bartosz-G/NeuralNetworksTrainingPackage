@@ -20,6 +20,8 @@ class trunctuateData():
             X, y = shuffle(X, y)
         X, y = X.head(self.n), y.head(self.n)
 
+        X,y = X.reset_index(drop=True), y.reset_index(drop=True)
+
         return X, y, categorical_indicator, attribute_names
 
 
@@ -188,8 +190,11 @@ class CustomDatasetWrapper(torch.utils.data.Dataset):
 
 
 
-def get_train_test(X, y, categorical_indicator, attribute_names, train_split = 0.8,
-                   trunctuate = 20000, seed = None, args = None):
+def get_train_test(X, y, categorical_indicator, attribute_names, data_pre_processing,
+                   task = 'regression',
+                   model = None ,
+                   train_split = 0.8,
+                   args = None):
     """Processes dataset
     expects the results from `opml_load_task`, 0<= train_spli <= 1, seed
     returns train CustomDataset Object, test CustomDataset Object, input_dim, output_dim
@@ -197,62 +202,12 @@ def get_train_test(X, y, categorical_indicator, attribute_names, train_split = 0
 
     assert 0 <= train_split <= 1, "train_split must be between 0 and 1."
 
-    # ==============================================================
-    # ===TODO: Refactor as a seperate, preprocessing function
-    # ==============================================================
+
     assert isinstance(X, (pd.Series, pd.DataFrame)), "X must be a Pandas Series or DataFrame"
     assert isinstance(y, (pd.Series, pd.DataFrame)), "Y must be a Pandas Series or DataFrame"
 
-    # itterative filtering and processing
-    valid_cols = []
-    categorical_indicator_filtered = []
-    for colname, nunique, iscat in zip(attribute_names, X.apply(pd.Series.nunique).values, categorical_indicator):
-
-        if iscat:
-            # filtering out high cardinality categorical
-            if nunique <= 20:
-                valid_cols.append(colname)
-                categorical_indicator_filtered.append(iscat)
-
-        # converting low numeric to categorical
-        elif nunique <= 2:
-            valid_cols.append(colname)
-            categorical_indicator_filtered.append(True)
-
-        # only keeping high cardinality numeric
-        elif nunique >= 10:
-            valid_cols.append(colname)
-            categorical_indicator_filtered.append(False)
-
-        # normalizing numeric columns with quantile distribution
-        if not iscat:
-            qt = QuantileTransformer(random_state=seed)
-            X[colname] = qt.fit_transform(X[[colname]])
-
-    # only keeping valid columns
-    X = X[valid_cols]
-
-    if not isinstance(X, pd.DataFrame):
-        X = X.to_frame()
-    if not isinstance(y, pd.DataFrame):
-        y = y.to_frame()
-
-    if seed:
-        np.random.seed(seed)
-
-    if trunctuate:
-        X, y = shuffle(X, y, random_state=seed)
-        X, y = X.head(trunctuate), y.head(trunctuate)
-
-
-
-    # Fixed to one-hot encoding for all categorical variables
-    X = pd.get_dummies(X, X.columns[categorical_indicator_filtered])
-
-    is_categorical = any(y[col].dtype.name == 'category' for col in y.columns)
-    if is_categorical:
-        y = pd.get_dummies(y)
-    # ==============================================================
+    X, y, categorical_indicator, attribute_names = data_pre_processing.apply(task, X, y, categorical_indicator, attribute_names)
+    X, y, categorical_indicator, attribute_names = data_pre_processing.apply(model, X, y, categorical_indicator, attribute_names)
 
     data_nrows = len(X)
     num_train_samples = int(data_nrows * train_split)
@@ -270,71 +225,18 @@ def get_train_test(X, y, categorical_indicator, attribute_names, train_split = 0
 
 
 def get_train_val_test(X, y, categorical_indicator, attribute_names,
+                       data_pre_processing,
+                       task = 'regression',
+                       model = None ,
                        split = [0.5, 0.25, 0.25],
-                       trunctuate = 20000,
-                       seed = None,
                        args = None):
 
-    assert isinstance(split, list) and len(split) == 3 and all(isinstance(x, float) for x in split), "split must be a list of floats, for train, val, test e.g. [0.5, 0.25, 0.25]"
-    assert isinstance(trunctuate, int) or trunctuate is None or trunctuate is False, "trunctuate must be a whole number or either a False or None"
 
-    # ==============================================================
-    # ===TODO: Refactor as a seperate, preprocessing function
-    # ==============================================================
     assert isinstance(X, (pd.Series, pd.DataFrame)), "X must be a Pandas Series or DataFrame"
     assert isinstance(y, (pd.Series, pd.DataFrame)), "Y must be a Pandas Series or DataFrame"
 
-    # itterative filtering and processing
-    valid_cols = []
-    categorical_indicator_filtered = []
-    for colname, nunique, iscat in zip(attribute_names, X.apply(pd.Series.nunique).values, categorical_indicator):
-
-        if iscat:
-            # filtering out high cardinality categorical
-            if nunique <= 20:
-                valid_cols.append(colname)
-                categorical_indicator_filtered.append(iscat)
-
-        # converting low numeric to categorical
-        elif nunique <= 2:
-            valid_cols.append(colname)
-            categorical_indicator_filtered.append(True)
-
-        # only keeping high cardinality numeric
-        elif nunique >= 10:
-            valid_cols.append(colname)
-            categorical_indicator_filtered.append(False)
-
-        # normalizing numeric columns with quantile distribution
-        if not iscat:
-            qt = QuantileTransformer(random_state=seed)
-            X[colname] = qt.fit_transform(X[[colname]])
-
-    # only keeping valid columns
-    X = X[valid_cols]
-
-    if not isinstance(X, pd.DataFrame):
-        X = X.to_frame()
-    if not isinstance(y, pd.DataFrame):
-        y = y.to_frame()
-
-    if seed:
-        np.random.seed(seed)
-
-    if trunctuate:
-        X, y = shuffle(X, y, random_state=seed)
-        X, y = X.head(trunctuate), y.head(trunctuate)
-
-
-
-    # Fixed to one-hot encoding for all categorical variables
-    X = pd.get_dummies(X, X.columns[categorical_indicator_filtered])
-
-    is_categorical = any(y[col].dtype.name == 'category' for col in y.columns)
-    if is_categorical:
-        y = pd.get_dummies(y)
-    # ==============================================================
-
+    X, y, categorical_indicator, attribute_names = data_pre_processing.apply(task, X, y, categorical_indicator, attribute_names)
+    X, y, categorical_indicator, attribute_names = data_pre_processing.apply(model, X, y, categorical_indicator, attribute_names)
 
     data_nrow = len(X)
     train_count, val_count = int(data_nrow * split[0]), int(data_nrow * split[1])
