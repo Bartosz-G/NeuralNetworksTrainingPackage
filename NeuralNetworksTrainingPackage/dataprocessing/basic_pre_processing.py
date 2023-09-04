@@ -82,7 +82,9 @@ class quantileTransform():
                                       random_state=self.random_state,
                                       copy=self.copy)
 
-        X.loc[:, ~categorical_indicator] = qt.fit_transform(X.loc[:, ~categorical_indicator])
+        categorical_np = np.array(categorical_indicator)
+
+        X.loc[:, ~categorical_np] = qt.fit_transform(X.loc[:, ~categorical_np])
 
         return X, y, categorical_indicator, attribute_names
 
