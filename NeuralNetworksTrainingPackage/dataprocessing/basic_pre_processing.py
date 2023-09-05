@@ -118,6 +118,7 @@ class oneHotEncodePredictors():
 
     def apply(self, X, y, categorical_indicator, attribute_names):
         X_dummies = pd.get_dummies(X, columns=X.columns[categorical_indicator])
+        X_dummies = X_dummies.astype(float)
 
         new_attribute_names = list(X_dummies.columns)
 

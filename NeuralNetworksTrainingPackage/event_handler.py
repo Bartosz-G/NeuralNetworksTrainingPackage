@@ -49,6 +49,7 @@ class dataPreProcessingEventEmitter():
             y = copy.deepcopy(self.y_copy)
             categorical_indicator = copy.deepcopy(self.categorical_indicators_copy)
             attribute_names = copy.deepcopy(self.attribute_names_copy)
+            print(f"Exception occurred: {e}")
             raise
 
 
