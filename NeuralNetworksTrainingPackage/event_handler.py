@@ -37,13 +37,18 @@ class dataPreProcessingEventEmitter():
             for obj in self.events[event_name]:
                 X, y, categorical_indicator, attribute_names = obj.apply(X, y, categorical_indicator, attribute_names)
 
+                self.X_copy = None
+                self.y_copy = None
+                self.categorical_indicators_copy = None
+                self.attribute_names_copy = None
+
             return X, y, categorical_indicator, attribute_names
 
         except Exception as e:
-            X = self.X_copy
-            y = self.y_copy
-            categorical_indicator = self.categorical_indicators_copy
-            attribute_names = self.attribute_names_copy
+            X = copy.deepcopy(self.X_copy)
+            y = copy.deepcopy(self.y_copy)
+            categorical_indicator = copy.deepcopy(self.categorical_indicators_copy)
+            attribute_names = copy.deepcopy(self.attribute_names_copy)
             raise
 
 
