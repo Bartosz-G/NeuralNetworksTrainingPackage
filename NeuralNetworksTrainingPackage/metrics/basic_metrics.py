@@ -6,7 +6,7 @@ from sklearn.metrics import accuracy_score, roc_auc_score, confusion_matrix, r2_
 
 
 
-# ========== Metric Calculations =============
+# ================== Depreciated ============================
 
 def np_get_cls_score(y, yhat):
     # ==============================================================

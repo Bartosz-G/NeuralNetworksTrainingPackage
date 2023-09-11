@@ -153,26 +153,22 @@ class oneHotEncodeTargets():
 
 # ============= Pytorch Dataset Objects =====================
 class CustomDataset(torch.utils.data.Dataset):
-    def __init__(self, X, Y, relative_indices, tensor_type=torch.float):
+    def __init__(self, X, Y, categorical_indicator, attribute_names, tensor_type=torch.float):
         assert isinstance(X, pd.DataFrame), "X must be a Pandas DataFrame"
         assert isinstance(Y, pd.DataFrame), "Y must be a Pandas DataFrame"
 
         self.X, self.Y = X, Y
-
-        assert isinstance(relative_indices, np.ndarray) and relative_indices.ndim == 1, "Relative indices must be a 1D NumPy array"
-        self.relative_indices = np.sort(relative_indices)
+        self.categorical_indicator = categorical_indicator
+        self.attribute_names = attribute_names
 
         assert isinstance(tensor_type, torch.dtype), "tensor_type must be a valid torch.dtype"
         self.tensor_type = tensor_type
 
     def __len__(self):
-        return len(self.relative_indices)
+        return len(self.X)
 
     def __getitem__(self, idx):
-        absolute_index = self.relative_indices[idx]
-
-
-        x, y = self.X.iloc[[absolute_index], :], self.Y.iloc[[absolute_index], :]
+        x, y = self.X.iloc[[idx], :], self.Y.iloc[[idx], :]
 
         x, y = torch.tensor(x.values.squeeze(axis=0), dtype=self.tensor_type), torch.tensor(y.values.squeeze(axis=0), dtype=self.tensor_type)
 
