@@ -163,12 +163,13 @@ class oneHotEncodeTargets():
 
 
 class splitTrainValTest():
-    def __init__(self, split = [0.5, 0.25, 0.25]):
+    def __init__(self, split = [0.5, 0.25, 0.25], transform = 'all'):
         # Prevents the parent from passing X, y, categorical_indicator, attribute_names, and gets kwargs instead
         self.special = True
 
         self.parent = None
         self.split = split
+        self.transform = transform
 
     def apply(self, **kwargs):
         assert self.parent.val is None, "Tried splitting into train, val, test but validation already exists"
