@@ -162,6 +162,43 @@ class oneHotEncodeTargets():
         return X, y, categorical_indicator, attribute_names
 
 
+class splitTrainValTest():
+    def __init__(self, split = [0.5, 0.25, 0.25]):
+        # Prevents the parent from passing X, y, categorical_indicator, attribute_names, and gets kwargs instead
+        self.special = True
+
+        self.parent = None
+        self.split = split
+
+    def apply(self, **kwargs):
+        assert self.parent.val is None, "Tried splitting into train, val, test but validation already exists"
+        assert self.parent.test is None, "Tried splitting into train, val, test but test already exists"
+
+
+        X, y, categorical_indicator, attribute_names = self.parent.train
+
+        data_nrow = len(X)
+        train_count, val_count = int(data_nrow * self.split[0]), int(data_nrow * self.split[1])
+        test_count = data_nrow - train_count - val_count
+
+        shuffled_indices = np.random.permutation(data_nrow)
+
+        train_indices, val_indices, test_indices = shuffled_indices[:train_count], shuffled_indices[train_count:train_count + val_count], shuffled_indices[train_count + val_count:]
+
+        train_data = (X.iloc[train_indices].reset_index(drop=True), y.iloc[train_indices].reset_index(drop=True),
+                      categorical_indicator, attribute_names)
+        val_data = (X.iloc[val_indices].reset_index(drop=True), y.iloc[val_indices].reset_index(drop=True),
+                    categorical_indicator,attribute_names)
+        test_data = (X.iloc[test_indices].reset_index(drop=True), y.iloc[test_indices].reset_index(drop=True),
+                     categorical_indicator,attribute_names)
+
+        self.parent.train = train_data
+        self.parent.val = val_data
+        self.parent.test = test_data
+
+
+
+
 # ============= Pytorch Dataset Objects =====================
 class CustomDataset(torch.utils.data.Dataset):
     def __init__(self, X, Y, categorical_indicator, attribute_names, tensor_type=torch.float):

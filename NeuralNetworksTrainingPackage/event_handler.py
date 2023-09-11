@@ -22,23 +22,36 @@ class dataPreProcessingEventEmitter():
     def set_seed_for_all(self, seed):
         self.seed = seed
 
-    def apply(self, event_name, X, y, categorical_indicator, attribute_names):
-        if not event_name in self.events:
-            return None
+    def reset(self, hard = False):
+        self.copy = None
+        self.train = None
+        self.val = None
+        self.test = None
 
+        if hard:
+            self.events = {}
+            self.seed = None
+            self.copy = None
+
+
+    def set_dataset(self, X, y, categorical_indicator, attribute_names):
         assert isinstance(X, (pd.Series, pd.DataFrame)), "X must be a Pandas Series or DataFrame"
         assert isinstance(y, (pd.Series, pd.DataFrame)), "Y must be a Pandas Series or DataFrame"
 
+        if any(attr is None for attr in (self.train, self.val, self.test)):
+            self.reset()
+
         self.copy = (copy.deepcopy(X), copy.deepcopy(y), copy.deepcopy(categorical_indicator), copy.deepcopy(attribute_names))
+        self.train = (X, y, categorical_indicator, attribute_names)
 
-
-        if self.train is None:
-            self.train = (X, y, categorical_indicator, attribute_names)
+    def apply(self, event_name, **kwargs):
+        if not event_name in self.events:
+            return None
 
         try:
             for obj in self.events[event_name]:
                 if getattr(obj, 'special', False):
-                    obj.apply()
+                    obj.apply(**kwargs)
                     continue
 
                 datasets = {'train': self.train, 'val': self.val, 'test': self.test}
@@ -73,30 +86,33 @@ class dataPreProcessingEventEmitter():
             y = copy.deepcopy(self.copy[1])
             categorical_indicator = copy.deepcopy(self.copy[2])
             attribute_names = copy.deepcopy(self.copy[3])
+            self.train = (X, y, categorical_indicator, attribute_names)
+            self.val = None
+            self.test = None
             print(f"Exception occurred: {e}")
             raise
 
     def get_train_val_test(self):
-        assert self.train is not None, "There is no train dataset to be taken out"
-        assert self.test is not None, "There is no test dataset to be taken out"
-        assert self.val is not None, "There is no val dataset to be taken out, did you mean to call get_train_test?"
+        assert self.train is not None, "There is no train dataset to be taken out, have you forgotten to call .apply()?"
+        assert self.test is not None, "There is no test dataset to be taken out have you forgotten to add splitTrainTest or splitTrainValTest?"
+        assert self.val is not None, "There is no val dataset to be taken out, have you forgotten to add splitTrainTest or splitTrainValTest?"
         return self.train, self.val, self.test
 
     def get_train_test(self):
-        assert self.train is not None, "There is no train dataset to be taken out"
-        assert self.test is not None, "There is no test dataset to be taken out"
+        assert self.train is not None, "There is no train dataset to be taken out, have you forgotten to call .apply()?"
+        assert self.test is not None, "There is no test dataset to be taken out, have you forgotten to add splitTrainTest or splitTrainValTest?"
         return self.train, self.test
 
     def get(self, dataset_name):
         assert dataset_name in ('train', 'val', 'test'), "Inapproriate dataset name, must be one of: train, val, test"
         if dataset_name == 'train':
-            assert self.train is not None, "There is no train dataset to be taken out"
+            assert self.train is not None, "There is no train dataset to be taken out, have you forgotten to call .apply()?"
             return self.train
         elif dataset_name == 'val':
-            assert self.val is not None, "There is no validation dataset to be taken out"
+            assert self.val is not None, "There is no validation dataset to be taken out, have you forgotten to add splitTrainTest or splitTrainValTest?"
             return self.val
         else:
-            assert self.test is not None, "There is no test dataset to be taken out"
+            assert self.test is not None, "There is no test dataset to be taken out, have you forgotten to add splitTrainTest or splitTrainValTest?"
             return self.test
 
 
