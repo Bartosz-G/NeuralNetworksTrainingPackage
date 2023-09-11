@@ -9,8 +9,10 @@ from sklearn.preprocessing import QuantileTransformer
 # =============== Pre-processing functions to be applied before ===============
 
 class trunctuateData():
-    def __init__(self, n, seed = None):
+    def __init__(self, n, seed = None, transform = 'all'):
         self.parent = None
+        self.transform = transform
+
         self.n = n
         self.seed = seed
 
@@ -27,11 +29,14 @@ class trunctuateData():
 
 
 class filterCardinality():
-    def __init__(self):
+    def __init__(self, transform = 'all'):
         self.parent = None
+        self.transform = transform
+
         self.numeric_that_should_be_categorical = 2
         self.too_high_cardinality = 20
         self.not_enough_numeric = 10
+
 
     def apply(self, X, y, categorical_indicator, attribute_names):
         valid_cols = []
@@ -68,8 +73,11 @@ class quantileTransform():
                  ignore_implicit_zeros=False,
                  subsample=10000,
                  random_state=None,
-                 copy=True):
+                 copy=True, transform = 'all'):
         self.parent = None
+        self.transform = transform
+
+
         self.n_quantiles = n_quantiles
         self.output_distribution = output_distribution
         self.ignore_implicit_zeros = ignore_implicit_zeros
@@ -97,8 +105,9 @@ class quantileTransform():
 
 
 class toDataFrame():
-    def __init__(self):
+    def __init__(self, transform = 'all'):
         self.parent = None
+        self.transform = transform
 
     def apply(self, X, y, categorical_indicator, attribute_names):
         assert isinstance(X, (pd.Series, pd.DataFrame)), "X must be a Pandas Series or DataFrame"
@@ -113,8 +122,9 @@ class toDataFrame():
 
 
 class oneHotEncodePredictors():
-    def __init__(self):
+    def __init__(self, transform = 'all'):
         self.parent = None
+        self.transform = transform
 
     def apply(self, X, y, categorical_indicator, attribute_names):
         X_dummies = pd.get_dummies(X, columns=X.columns[categorical_indicator])
@@ -132,8 +142,9 @@ class oneHotEncodePredictors():
         return X_dummies, y, new_categorical_indicator, new_attribute_names
 
 class oneHotEncodeTargets():
-    def __init__(self):
+    def __init__(self, transform = 'all'):
         self.parent = None
+        self.transform = transform
 
     def apply(self, X, y, categorical_indicator, attribute_names):
 
