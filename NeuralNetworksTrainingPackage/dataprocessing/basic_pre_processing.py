@@ -199,7 +199,9 @@ class splitTrainValTest():
 
 
 
-# ============= Pytorch Dataset Objects =====================
+
+
+# ============= Pytorch Specific transformations and objects =====================
 class CustomDataset(torch.utils.data.Dataset):
     def __init__(self, X, Y, categorical_indicator, attribute_names, tensor_type=torch.float):
         assert isinstance(X, pd.DataFrame), "X must be a Pandas DataFrame"
@@ -250,7 +252,29 @@ class CustomDatasetWrapper(torch.utils.data.Dataset):
         return self.train_dataset[absolute_index]
 
 
+class toPyTorchDatasets():
+    def __init__(self, wrapper = CustomDataset):
+        self.special = True
+        self.parent = None
+        self.wrapper = wrapper
 
+    def apply(self, **kwargs):
+        X, y, categorical_indicator, attribute_names = self.parent.train
+        self.parent.train = self.wrapper(X, y, categorical_indicator, attribute_names)
+
+        if self.parent.val is not None:
+            X, y, categorical_indicator, attribute_names = self.parent.val
+            self.parent.val = self.wrapper(X, y, categorical_indicator, attribute_names)
+
+        if self.parent.test is not None:
+            X, y, categorical_indicator, attribute_names = self.parent.test
+            self.parent.test = self.wrapper(X, y, categorical_indicator, attribute_names)
+
+
+
+
+
+# ================== Depreciated ============================
 def get_train_test(X, y, categorical_indicator, attribute_names, data_pre_processing,
                    task = 'regression',
                    model = None ,

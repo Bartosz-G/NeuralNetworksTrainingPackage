@@ -12,7 +12,7 @@ class dataPreProcessingEventEmitter():
         self.test = None
 
 
-    def add_pre_processing(self, event_name: str, obj):
+    def add_pre_processing_step(self, event_name: str, obj):
         if not event_name in self.events:
             self.events[event_name] = []
         obj.parent = self
