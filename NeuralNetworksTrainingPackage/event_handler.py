@@ -16,7 +16,7 @@ class dataPreProcessingEventEmitter():
         if not event_name in self.events:
             self.events[event_name] = []
         obj.parent = self
-        assert obj.transform in ('all', 'train', 'val', 'test'), "transformation's .transform attribute must be one of: 'all', 'train', 'val, 'test"
+        assert obj.transform in ('all', 'train', 'val', 'test'), "transformation's transform attribute must be one of: 'all', 'train', 'val, 'test"
         self.events[event_name].append(obj)
 
     def set_seed_for_all(self, seed):
@@ -24,7 +24,7 @@ class dataPreProcessingEventEmitter():
 
     def apply(self, event_name, X, y, categorical_indicator, attribute_names):
         if not event_name in self.events:
-            return X, y, categorical_indicator, attribute_names
+            return None
 
         assert isinstance(X, (pd.Series, pd.DataFrame)), "X must be a Pandas Series or DataFrame"
         assert isinstance(y, (pd.Series, pd.DataFrame)), "Y must be a Pandas Series or DataFrame"
@@ -66,6 +66,7 @@ class dataPreProcessingEventEmitter():
 
             self.copy = None
 
+            return None
 
         except Exception as e:
             X = copy.deepcopy(self.copy[0])
@@ -75,6 +76,27 @@ class dataPreProcessingEventEmitter():
             print(f"Exception occurred: {e}")
             raise
 
+    def get_train_val_test(self):
+        assert self.train is not None, "There is no train dataset to be taken out"
+        assert self.test is not None, "There is no test dataset to be taken out"
+        assert self.val is not None, "There is no val dataset to be taken out, did you mean to call get_train_test?"
+        return self.train, self.val, self.test
 
+    def get_train_test(self):
+        assert self.train is not None, "There is no train dataset to be taken out"
+        assert self.test is not None, "There is no test dataset to be taken out"
+        return self.train, self.test
+
+    def get(self, dataset_name):
+        assert dataset_name in ('train', 'val', 'test'), "Inapproriate dataset name, must be one of: train, val, test"
+        if dataset_name == 'train':
+            assert self.train is not None, "There is no train dataset to be taken out"
+            return self.train
+        elif dataset_name == 'val':
+            assert self.val is not None, "There is no validation dataset to be taken out"
+            return self.val
+        else:
+            assert self.test is not None, "There is no test dataset to be taken out"
+            return self.test
 
 
