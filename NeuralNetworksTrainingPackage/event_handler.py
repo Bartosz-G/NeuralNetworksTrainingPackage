@@ -66,6 +66,9 @@ class dataPreProcessingEventEmitter():
                         datasets[dataset_name] = (X, y, categorical_indicator, attribute_names)
 
                     elif obj.transform == dataset_name:
+                        if all(dataset_name == 'train', self.train is None, self.val is None):
+                            raise ValueError(f"The obj.transform is set to {obj.transform}, but the dataset hasn't been split yet, if you are trying to apply to all, use .transform = 'all'")
+
                         if dataset is None:
                             raise ValueError(
                                 f"The dataset for {dataset_name} is None, but the obj.transform is set to {obj.transform}, have you forgotten to add splitTrainTest or splitTrainValTest?")

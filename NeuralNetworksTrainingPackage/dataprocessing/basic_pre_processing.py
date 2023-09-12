@@ -6,6 +6,25 @@ from sklearn.utils import shuffle
 from sklearn.preprocessing import QuantileTransformer
 
 
+
+
+# class exampleTransformationTemplate():
+#     def __init__(self, transform = 'all'):
+#         self.seed = None
+#         self.parent = None
+#         self.transform = transform
+#
+#     def apply(self, X, y, categorical_indicator, attribute_names):
+#         if not self.seed:
+#             self.seed = self.parent.seed
+#
+#
+#         #
+#
+#         return X, y, categorical_indicator, attribute_names
+
+
+
 # =============== Pre-processing functions to be applied before ===============
 
 class trunctuateData():
