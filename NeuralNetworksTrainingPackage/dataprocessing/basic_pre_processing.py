@@ -234,6 +234,11 @@ class CustomDataset(torch.utils.data.Dataset):
         assert isinstance(tensor_type, torch.dtype), "tensor_type must be a valid torch.dtype"
         self.tensor_type = tensor_type
 
+    def get_dims(self):
+        num_columns_X = self.X.shape[1]
+        num_columns_Y = self.Y.shape[1] if isinstance(self.Y, pd.DataFrame) else 1
+        return num_columns_X, num_columns_Y
+
     def __len__(self):
         return len(self.X)
 
