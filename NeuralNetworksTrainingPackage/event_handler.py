@@ -16,7 +16,11 @@ class dataPreProcessingEventEmitter():
         if not event_name in self.events:
             self.events[event_name] = []
         obj.parent = self
-        assert obj.transform in ('all', 'train', 'val', 'test'), "transformation's transform attribute must be one of: 'all', 'train', 'val, 'test"
+        assert (
+                (hasattr(obj, "transform") and obj.transform in ('all', 'train', 'val', 'test')) or
+                (hasattr(obj, "special") and obj.special is True)
+        ), "transformation .transform attribute must be one of: 'all', 'train', 'val', 'test' or .special must be True"
+
         self.events[event_name].append(obj)
 
     def set_seed_for_all(self, seed):
