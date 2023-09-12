@@ -191,8 +191,8 @@ class splitTrainValTest():
         self.split = split
 
     def apply(self, **kwargs):
-        assert self.parent.val is not None, "Tried splitting into train, val, test but validation already exists"
-        assert self.parent.test is not None, "Tried splitting into train, val, test but test already exists"
+        assert self.parent.val is None, "Tried splitting into train, val, test but validation already exists"
+        assert self.parent.test is None, "Tried splitting into train, val, test but test already exists"
 
 
         X, y, categorical_indicator, attribute_names = self.parent.train
