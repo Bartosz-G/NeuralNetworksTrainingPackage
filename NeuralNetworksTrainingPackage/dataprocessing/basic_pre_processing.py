@@ -237,7 +237,7 @@ class CustomDataset(torch.utils.data.Dataset):
     def get_dims(self):
         num_columns_X = self.X.shape[1]
         num_columns_Y = self.Y.shape[1] if isinstance(self.Y, pd.DataFrame) else 1
-        return num_columns_X, num_columns_Y
+        return {'input_dim': num_columns_X, 'output_dim':num_columns_Y}
 
     def __len__(self):
         return len(self.X)
