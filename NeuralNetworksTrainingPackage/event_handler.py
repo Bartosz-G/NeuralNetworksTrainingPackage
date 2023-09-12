@@ -42,8 +42,7 @@ class dataPreProcessingEventEmitter():
         assert isinstance(X, (pd.Series, pd.DataFrame)), "X must be a Pandas Series or DataFrame"
         assert isinstance(y, (pd.Series, pd.DataFrame)), "Y must be a Pandas Series or DataFrame"
 
-        if any(attr is None for attr in (self.train, self.val, self.test)):
-            self.reset()
+        self.reset()
 
         self.copy = (copy.deepcopy(X), copy.deepcopy(y), copy.deepcopy(categorical_indicator), copy.deepcopy(attribute_names))
         self.train = (X, y, categorical_indicator, attribute_names)
