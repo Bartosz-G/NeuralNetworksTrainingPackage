@@ -109,6 +109,9 @@ class quantileTransform():
         if not self.random_state:
             self.random_state = self.parent.seed
 
+        if all(categorical_indicator):
+            return X, y, categorical_indicator, attribute_names
+
         qt = QuantileTransformer(n_quantiles=self.n_quantiles,
                                       output_distribution=self.output_distribution,
                                       ignore_implicit_zeros=self.ignore_implicit_zeros,
