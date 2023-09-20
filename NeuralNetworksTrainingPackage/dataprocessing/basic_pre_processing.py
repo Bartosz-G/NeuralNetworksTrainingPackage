@@ -227,16 +227,18 @@ class oneHotEncodeTargets():
 
     def apply(self, X, y, categorical_indicator, attribute_names):
 
-        if isinstance(y, pd.DataFrame):
-            is_categorical = any(y[col].dtype.name == 'category' for col in y.columns)
-            if is_categorical:
-                y = pd.get_dummies(y)
+        y = pd.get_dummies(y, dtype=int)
 
-        if isinstance(y, pd.Series):
-            is_categorical = y.dtype.name == 'category'
-
-            if is_categorical:
-                y = pd.get_dummies(y)
+        # if isinstance(y, pd.DataFrame):
+        #     is_categorical = any(y[col].dtype.name == 'category' for col in y.columns)
+        #     if is_categorical:
+        #         y = pd.get_dummies(y)
+        #
+        # if isinstance(y, pd.Series):
+        #     is_categorical = y.dtype.name == 'category'
+        #
+        #     if is_categorical:
+        #         y = pd.get_dummies(y)
 
         return X, y, categorical_indicator, attribute_names
 
