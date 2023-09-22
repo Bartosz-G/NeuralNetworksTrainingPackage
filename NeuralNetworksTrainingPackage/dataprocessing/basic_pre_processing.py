@@ -392,6 +392,45 @@ class CustomDatasetWrapper(torch.utils.data.Dataset):
         return self.train_dataset[absolute_index]
 
 
+
+class CustomEmbedDataset(torch.utils.data.Dataset):
+    def __init__(self, X, Y, categorical_indicator, attribute_names, tensor_type=torch.float):
+        assert isinstance(X, pd.DataFrame), "X must be a Pandas DataFrame"
+        assert isinstance(Y, pd.DataFrame), "Y must be a Pandas DataFrame"
+
+        self.input_dim = X.shape[1]
+        self.output_dim = Y.shape[1] if isinstance(Y, pd.DataFrame) else 1
+        self.n_cat = sum(categorical_indicator)
+
+        self.attribute_names = attribute_names
+        self.categorical_indicator = categorical_indicator
+
+        self.Xcat = X.loc[:, categorical_indicator]
+        self.Xcont = X.loc[:, ~categorical_indicator]
+
+        self.Y = Y
+
+        assert isinstance(tensor_type, torch.dtype), "tensor_type must be a valid torch.dtype"
+        self.tensor_type = tensor_type
+
+    def get_dims(self):
+        return {'input_dim': self.input_dim, 'output_dim': self.output_dim, 'n_cat': self.n_cat}
+
+    def __len__(self):
+        return len(self.Xcont)
+
+    def __getitem__(self, idx):
+        xcont = self.Xcont.iloc[[idx], :]
+        xcat = self.Xcat.iloc[[idx], :]
+        y = self.Y.iloc[[idx], :]
+
+        xcont = torch.tensor(xcont.values.squeeze(axis=0), dtype=self.tensor_type)
+        xcat = torch.tensor(xcat.values.squeeze(axis=0), dtype=self.tensor_type)
+        y = torch.tensor(y.values.squeeze(axis=0), dtype=self.tensor_type)
+
+        return xcont, xcat, y
+
+
 class toPyTorchDatasets():
     def __init__(self, wrapper = CustomDataset):
         self.special = True
