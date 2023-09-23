@@ -393,7 +393,7 @@ class CustomDatasetWrapper(torch.utils.data.Dataset):
 
 
 
-class CustomEmbedDataset(torch.utils.data.Dataset):
+class CustomCategoricalSplitDataset(torch.utils.data.Dataset):
     def __init__(self, X, Y, categorical_indicator, attribute_names, tensor_type=torch.float):
         assert isinstance(X, pd.DataFrame), "X must be a Pandas DataFrame"
         assert isinstance(Y, pd.DataFrame), "Y must be a Pandas DataFrame"
