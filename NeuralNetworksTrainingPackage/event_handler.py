@@ -83,7 +83,6 @@ class dataPreProcessingEventEmitter():
 
                 self.train, self.val, self.test = datasets['train'], datasets['val'], datasets['test']
 
-            self.copy = None
 
             return None
 

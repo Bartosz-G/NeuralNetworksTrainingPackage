@@ -405,8 +405,10 @@ class CustomCategoricalSplitDataset(torch.utils.data.Dataset):
         self.attribute_names = attribute_names
         self.categorical_indicator = categorical_indicator
 
-        self.Xcat = X.loc[:, categorical_indicator]
-        self.Xcont = X.loc[:, ~categorical_indicator]
+        self.categorical_indicator = np.array(categorical_indicator)  # Convert list to numpy array
+
+        self.Xcat = X.loc[:, self.categorical_indicator]
+        self.Xcont = X.loc[:, ~self.categorical_indicator]
 
         self.Y = Y
 
