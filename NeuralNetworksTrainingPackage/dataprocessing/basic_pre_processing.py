@@ -4,7 +4,7 @@ import torch
 from sklearn.model_selection import KFold
 from sklearn.utils import shuffle
 from sklearn.preprocessing import QuantileTransformer
-
+from sklearn.preprocessing import LabelEncoder
 
 
 
@@ -242,6 +242,17 @@ class oneHotEncodeTargets():
 
         return X, y, categorical_indicator, attribute_names
 
+
+class labelEncodeTargets():
+    def __init__(self, transform = 'all'):
+        self.parent = None
+        self.transform = transform
+
+    def apply(self, X, y, categorical_indicator, attribute_names):
+        le = LabelEncoder()
+        y = pd.Series(le.fit_transform(y))
+
+        return X, y, categorical_indicator, attribute_names
 
 class splitTrainValTest():
     def __init__(self, split = [0.5, 0.25, 0.25]):
